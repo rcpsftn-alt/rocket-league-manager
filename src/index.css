@@ -1,0 +1,45 @@
+@import "tailwindcss";
+
+@theme {
+  --color-ink-950: #0b0c0e;
+  --color-ink-900: #111316;
+  --color-ink-850: #15181c;
+  --color-ink-800: #1a1d22;
+  --color-ink-700: #23272e;
+  --color-ink-600: #2e333b;
+  --color-ink-500: #3d434d;
+  --color-ink-400: #5b626e;
+  --color-ink-300: #8a919c;
+  --color-ink-200: #b8bec7;
+  --color-ink-100: #e4e7eb;
+  --color-accent: #ff7a1a;
+  --color-accent-dim: #c95c0e;
+  --color-good: #3fcf8e;
+  --color-bad: #f25555;
+  --color-warn: #f0b429;
+  --color-info: #4f9dff;
+  --font-sans: "Inter", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", "Cascadia Mono", Consolas, monospace;
+}
+
+html, body, #root { height: 100%; }
+body { background: var(--color-ink-950); color: var(--color-ink-100); font-size: 13px; -webkit-font-smoothing: antialiased; }
+* { scrollbar-width: thin; scrollbar-color: #2e333b transparent; }
+::selection { background: #ff7a1a55; }
+.tnum { font-variant-numeric: tabular-nums; }
+table.data { width: 100%; border-collapse: collapse; }
+table.data th { text-align: left; font-weight: 500; color: var(--color-ink-300); font-size: 11px; text-transform: uppercase; letter-spacing: .04em; padding: 6px 8px; border-bottom: 1px solid var(--color-ink-700); position: sticky; top: 0; background: var(--color-ink-900); z-index: 1; white-space: nowrap; }
+table.data th.sortable { cursor: pointer; }
+table.data th.sortable:hover { color: var(--color-ink-100); }
+table.data td { padding: 5px 8px; border-bottom: 1px solid #1d2026; white-space: nowrap; }
+table.data tbody tr:hover { background: #181b20; }
+table.data tr.me { background: #ff7a1a12; }
+.link { cursor: pointer; }
+.link:hover { color: var(--color-accent); text-decoration: underline; text-underline-offset: 2px; }
+input, select, textarea { background: var(--color-ink-850); border: 1px solid var(--color-ink-600); color: var(--color-ink-100); padding: 4px 8px; border-radius: 3px; outline: none; }
+input:focus, select:focus { border-color: var(--color-accent); }
+input[type=range] { padding: 0; accent-color: var(--color-accent); }
+@keyframes flash { 0% { background: #ff7a1a40 } 100% { background: transparent } }
+.flash { animation: flash 1.2s ease-out; }
+@keyframes slidein { from { opacity: 0; transform: translateY(4px) } to { opacity: 1; transform: none } }
+.slidein { animation: slidein .25s ease-out; }
