@@ -3,6 +3,7 @@ import { useGame, useStore, act } from '../store';
 import type { Position, StaffRole, Tactic, TeamFocus } from '../../engine/types';
 import { INDIVIDUAL_FOCUSES, STAFF_ROLES, TEAM_FOCUSES } from '../../engine/types';
 import { Bar, Btn, cx, Empty, Field, Modal, Panel, Pill, PlayerLink, Stat, AbilityCell, CondDot } from '../components/ui';
+import { Flag, Avatar } from '../components/ui';
 import { lineup, orgPlayers, starters } from '../../engine/roster';
 import { previewSide, DEFAULT_TACTIC } from '../../engine/matchsim';
 import { ATTR_LABEL, age } from '../../engine/player';
@@ -37,8 +38,8 @@ export function Tactics() {
   });
   const delta = (a: number, b: number) => { const d = a - b; return <span className={cx('text-[11px] tnum', d > 0.05 ? 'text-good' : d < -0.05 ? 'text-bad' : 'text-ink-400')}>{d > 0 ? '+' : ''}{d.toFixed(1)}</span>; };
   return (
-    <div className="p-3 grid grid-cols-3 gap-3">
-      <Panel title="Consignes d'équipe" className="col-span-2">
+    <div className="grid grid-cols-1 @4xl:grid-cols-3 gap-4">
+      <Panel title="Consignes d'équipe" className="@4xl:col-span-2">
         <div className="flex flex-col gap-4">
           {TACTIC_DEFS.map(d => (
             <div key={d.key} className="grid grid-cols-[180px_1fr_140px] gap-4 items-center">
@@ -65,7 +66,7 @@ export function Tactics() {
           </div>
         ) : <Empty>Aucun joueur.</Empty>}
       </Panel>
-      <Panel title="Postes des titulaires" className="col-span-2" pad={false}>
+      <Panel title="Postes des titulaires" className="@4xl:col-span-2" pad={false}>
         {st.length ? (
           <table className="data"><thead><tr><th>Joueur</th><th>Poste naturel</th><th>Style</th><th>Poste assigné</th><th>Attributs clés</th></tr></thead><tbody>
             {st.map(p => {
@@ -102,8 +103,8 @@ export function Training() {
   const inBootcamp = org.bootcampUntil && org.bootcampUntil >= g.date;
   const factors: [string, number][] = [['Mécanique', coachingFactor(g, org, 'mech')], ['Tactique', coachingFactor(g, org, 'iq')], ['Mental', coachingFactor(g, org, 'mental')], ['Jeunes', coachingFactor(g, org, 'youth')]];
   return (
-    <div className="p-3 grid grid-cols-3 gap-3">
-      <Panel title="Programme collectif" className="col-span-2">
+    <div className="grid grid-cols-1 @4xl:grid-cols-3 gap-4">
+      <Panel title="Programme collectif" className="@4xl:col-span-2">
         <div className="grid grid-cols-4 gap-2 mb-4">
           {TEAM_FOCUSES.map(f => (
             <button key={f} onClick={() => act(gs => { gs.orgs[gs.userOrgId!].trainingFocus.focus = f as TeamFocus; })} className={cx('p-2 border text-left cursor-pointer', tf.focus === f ? 'border-accent bg-accent/10' : 'border-ink-600 hover:border-ink-400')}>
@@ -126,7 +127,7 @@ export function Training() {
         {factors.map(([l, v]) => <div key={l} className="mb-2"><div className="flex justify-between text-xs mb-1"><span className="text-ink-300">{l}</span><span className="tnum">×{v.toFixed(2)}</span></div><Bar value={(v - 0.4) * 80} /></div>)}
         <div className="text-[11px] text-ink-400">Dépend du head coach, de l'assistant, du coach mental/académie et des infrastructures (niveau {org.facilities}).</div>
       </Panel>
-      <Panel title="Plans individuels" className="col-span-3" pad={false}>
+      <Panel title="Plans individuels" className="@4xl:col-span-3" pad={false}>
         <table className="data"><thead><tr><th></th><th>Joueur</th><th>Âge</th><th>Niveau</th><th>Focus individuel</th><th>Fatigue</th><th>Burnout</th><th>Moral</th></tr></thead><tbody>
           {ps.map(p => (
             <tr key={p.id}>
@@ -153,18 +154,18 @@ export function StaffScreen() {
   const market = Object.values(g.staff).filter(s => !s.orgId && s.role === role).sort((a, b) => staffQuality(b) - staffQuality(a));
   const h = hiring ? g.staff[hiring] : null;
   return (
-    <div className="p-3 grid grid-cols-2 gap-3">
+    <div className="grid grid-cols-1 @3xl:grid-cols-2 gap-4">
       <Panel title={`Votre staff (${mine.length}/8)`} pad={false}>
         {mine.length ? (
           <table className="data"><thead><tr><th>Nom</th><th>Rôle</th><th>Qualité</th><th>Salaire</th><th>Contrat</th><th></th></tr></thead><tbody>
-            {mine.map(s => <tr key={s.id}><td>{flag(s.nationality)} {s.name}</td><td>{s.role}</td><td className="tnum">{staffQuality(s).toFixed(1)}/20</td><td className="tnum">{money(s.salary)}</td><td className="text-[11px] text-ink-300">{s.contractEnd?.slice(0, 4)}</td>
+            {mine.map(s => <tr key={s.id}><td><Flag code={s.nationality} /> {s.name}</td><td>{s.role}</td><td className="tnum">{staffQuality(s).toFixed(1)}/20</td><td className="tnum">{money(s.salary)}</td><td className="text-[11px] text-ink-300">{s.contractEnd?.slice(0, 4)}</td>
               <td className="text-right"><Btn small kind="danger" onClick={() => { const comp = s.salary * 3; if (confirm(`Licencier ${s.name} ? Indemnité : ${money(comp)}`)) { act(gs => { book(gs, org.id, 'Salaires staff', -comp, `Indemnité — ${s.name}`); fireStaff(gs, s); }); notify(`${s.name} a quitté le club.`); } }}>Licencier</Btn></td></tr>)}
           </tbody></table>
         ) : <Empty>Aucun membre du staff.</Empty>}
       </Panel>
       <Panel title="Marché du staff" pad={false} right={<select value={role} onChange={e => setRole(e.target.value as StaffRole)}>{STAFF_ROLES.map(r => <option key={r}>{r}</option>)}</select>}>
         <table className="data"><thead><tr><th>Nom</th><th>Âge</th><th>Méca</th><th>Tact</th><th>Mental</th><th>Physique</th><th>Jeunes</th><th>Analyse</th><th>Motiv.</th><th>Rép.</th><th>Salaire</th><th></th></tr></thead><tbody>
-          {market.slice(0, 40).map(s => <tr key={s.id}><td>{flag(s.nationality)} {s.name}</td><td>{s.age}</td>{(['mechanics', 'tactics', 'mental', 'fitness', 'youth', 'analysis', 'motivation'] as const).map(k => <td key={k} className="tnum" style={{ color: s.attrs[k] >= 15 ? '#3fcf8e' : s.attrs[k] >= 10 ? '#e8d44d' : '#8a919c' }}>{s.attrs[k]}</td>)}<td className="tnum">{s.reputation}</td><td className="tnum">{money(staffSalaryDemand(s, org.reputation))}</td><td><Btn small kind="primary" disabled={mine.length >= 8} onClick={() => setHiring(s.id)}>Engager</Btn></td></tr>)}
+          {market.slice(0, 40).map(s => <tr key={s.id}><td><Flag code={s.nationality} /> {s.name}</td><td>{s.age}</td>{(['mechanics', 'tactics', 'mental', 'fitness', 'youth', 'analysis', 'motivation'] as const).map(k => <td key={k} className="tnum" style={{ color: s.attrs[k] >= 15 ? '#3fcf8e' : s.attrs[k] >= 10 ? '#e8d44d' : '#8a919c' }}>{s.attrs[k]}</td>)}<td className="tnum">{s.reputation}</td><td className="tnum">{money(staffSalaryDemand(s, org.reputation))}</td><td><Btn small kind="primary" disabled={mine.length >= 8} onClick={() => setHiring(s.id)}>Engager</Btn></td></tr>)}
         </tbody></table>
       </Panel>
       {h && <HireModal sId={h.id} onClose={() => setHiring(null)} />}

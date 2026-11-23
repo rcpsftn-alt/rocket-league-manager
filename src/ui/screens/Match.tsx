@@ -36,18 +36,18 @@ function PreMatch({ m, onLive }: { m: Match; onLive: () => void }) {
   const [wa, wb] = seriesScore(m);
   const tl = (v: number, l: string[]) => l[v + 2] ?? '?';
   return (
-    <div className="p-3 flex flex-col gap-3">
-      <div className="bg-ink-900 border border-ink-700 p-5 flex items-center justify-center gap-10">
-        <div className="flex items-center gap-3"><OrgBadge org={g.orgs[m.teamA]} size={56} /><div className="text-xl font-bold">{g.orgs[m.teamA].name}</div></div>
+    <div className="flex flex-col gap-4">
+      <div className="card relative overflow-hidden p-7 flex items-center justify-center gap-6 @3xl:gap-14 flex-wrap" style={{ background: 'linear-gradient(90deg, #3d8bff2e 0%, #3d8bff08 35%, transparent 50%, #ff8a1f08 65%, #ff8a1f2e 100%), linear-gradient(180deg, #151a24, #121620)' }}>
+        <div className="flex items-center gap-3"><OrgBadge org={g.orgs[m.teamA]} size={72} /><div className="text-xl font-bold">{g.orgs[m.teamA].name}</div></div>
         <div className="text-center"><div className="text-[11px] text-ink-400 uppercase">{t.short} · {m.label}</div><div className="text-3xl font-black tnum">{m.games.length ? `${wa} - ${wb}` : 'VS'}</div><div className="text-xs text-ink-300">Best of {m.bestOf} · importance {Math.round(matchImportance(g, m) * 100)}%</div></div>
-        <div className="flex items-center gap-3"><div className="text-xl font-bold">{g.orgs[m.teamB].name}</div><OrgBadge org={g.orgs[m.teamB]} size={56} /></div>
+        <div className="flex items-center gap-3"><div className="text-xl font-bold">{g.orgs[m.teamB].name}</div><OrgBadge org={g.orgs[m.teamB]} size={72} /></div>
       </div>
       <div className="flex gap-2 justify-center">
         <Btn kind="primary" className="h-9 px-6 text-sm" onClick={onLive}>▶ Suivre en direct</Btn>
         <Btn className="h-9 px-6 text-sm" onClick={() => act(gs => quickSimUserMatch(gs, gs.matches[m.id]))}>Simulation rapide</Btn>
         <Btn className="h-9" onClick={() => nav('tactics')}>Ajuster la tactique</Btn>
       </div>
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 @4xl:grid-cols-3 gap-4">
         {[me, opp].map(o => (
           <Panel key={o.id} title={`Lineup ${o.tag}`} pad={false}>
             <table className="data"><tbody>{lineup(g, o).map(p => <tr key={p.id}><td><PlayerLink p={p} /></td><td className="text-ink-300">{o.positions[p.id] ?? p.position}e · {p.playstyle}</td><td><AbilityCell g={g} p={p} /></td><td className="tnum text-ink-300">{recentForm(p) ? recentForm(p).toFixed(1) : '—'}</td></tr>)}</tbody></table>
@@ -164,20 +164,20 @@ function LiveMatch({ m, onExit }: { m: Match; onExit: () => void }) {
   const statsRows = (side: SideCtx) => side.players.map(sp => ({ sp, s: st?.stats.get(sp.p.id) }));
   const A = g.orgs[m.teamA], B = g.orgs[m.teamB];
   return (
-    <div className="p-3 flex flex-col gap-3">
-      <div className="bg-ink-900 border border-ink-700">
+    <div className="flex flex-col gap-4">
+      <div className="card relative overflow-hidden" style={{ background: 'linear-gradient(90deg, #3d8bff2e 0%, #3d8bff08 35%, transparent 50%, #ff8a1f08 65%, #ff8a1f2e 100%), linear-gradient(180deg, #151a24, #121620)' }}>
         <div className="flex items-center justify-center gap-8 py-4">
-          <div className="flex items-center gap-3 w-72 justify-end"><div className="text-right"><div className="text-lg font-bold">{A.name}</div><div className="text-[11px] text-ink-400">Chimie {Math.round(r.A.chem)}%</div></div><OrgBadge org={A} size={48} /></div>
+          <div className="flex items-center gap-3 w-72 justify-end"><div className="text-right"><div className="text-lg font-bold">{A.name}</div><div className="text-[11px] text-ink-400">Chimie {Math.round(r.A.chem)}%</div></div><OrgBadge org={A} size={60} /></div>
           <div className="text-center">
-            <div className="flex items-center gap-4"><span className="text-5xl font-black tnum">{scoreA}</span><span className="text-ink-500">:</span><span className="text-5xl font-black tnum">{scoreB}</span></div>
+            <div className="flex items-center gap-4"><span className="text-6xl font-black tnum text-[#7fb2ff]">{scoreA}</span><span className="text-ink-500">:</span><span className="text-6xl font-black tnum text-[#ffb066]">{scoreB}</span></div>
             <div className={cx('text-sm font-mono mt-1', st?.ot ? 'text-accent' : 'text-ink-200')}>{st ? (st.ot ? 'PROLONGATION ' : '') + fmtT(st.t) : done || m.played ? 'TERMINÉ' : 'ENTRE-JEUX'}</div>
           </div>
-          <div className="flex items-center gap-3 w-72"><OrgBadge org={B} size={48} /><div><div className="text-lg font-bold">{B.name}</div><div className="text-[11px] text-ink-400">Chimie {Math.round(r.B.chem)}%</div></div></div>
+          <div className="flex items-center gap-3 w-72"><OrgBadge org={B} size={60} /><div><div className="text-lg font-bold">{B.name}</div><div className="text-[11px] text-ink-400">Chimie {Math.round(r.B.chem)}%</div></div></div>
         </div>
         <div className="flex items-center justify-center gap-6 pb-3">
-          <div className="flex gap-1">{Array.from({ length: need }).map((_, i) => <span key={i} className={cx('w-3 h-3 border', i < wa ? 'bg-accent border-accent' : 'border-ink-500')} />)}</div>
+          <div className="flex gap-1">{Array.from({ length: need }).map((_, i) => <span key={i} className={cx('w-3.5 h-3.5 rounded-full border', i < wa ? 'bg-[#3d8bff] border-[#3d8bff]' : 'border-ink-500')} />)}</div>
           <span className="text-xs text-ink-300">Série Bo{m.bestOf} · Jeu {Math.min(m.games.length + (sim ? 1 : 0), m.bestOf)}</span>
-          <div className="flex gap-1">{Array.from({ length: need }).map((_, i) => <span key={i} className={cx('w-3 h-3 border', i < wb ? 'bg-accent border-accent' : 'border-ink-500')} />)}</div>
+          <div className="flex gap-1">{Array.from({ length: need }).map((_, i) => <span key={i} className={cx('w-3.5 h-3.5 rounded-full border', i < wb ? 'bg-accent border-accent' : 'border-ink-500')} />)}</div>
         </div>
         <div className="px-6 pb-3"><div className="text-[10px] text-ink-400 text-center mb-1">MOMENTUM</div><div className="h-1.5 bg-ink-700 relative"><div className="absolute top-0 h-1.5 bg-accent transition-all" style={{ left: mom >= 0 ? '50%' : `${50 + mom * 80}%`, width: `${Math.abs(mom) * 80}%` }} /><div className="absolute left-1/2 top-[-2px] w-px h-2.5 bg-ink-300" /></div></div>
       </div>
@@ -193,9 +193,9 @@ function LiveMatch({ m, onExit }: { m: Match; onExit: () => void }) {
         <Btn kind="ghost" onClick={() => { setRunning(false); onExit(); }}>Quitter (match en pause)</Btn>
       </div>
 
-      <div className="grid grid-cols-[1fr_380px] gap-3">
+      <div className="grid grid-cols-1 @5xl:grid-cols-[1fr_380px] gap-4">
         <div className="flex flex-col gap-3">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 @3xl:grid-cols-2 gap-4">
             {([r.A, r.B] as SideCtx[]).map((side, si) => (
               <Panel key={si} title={side.name} pad={false}>
                 <table className="data"><thead><tr><th>Joueur</th><th>Score</th><th>B</th><th>PD</th><th>Arr.</th><th>Tirs</th><th>Dém.</th></tr></thead><tbody>
@@ -217,7 +217,7 @@ function LiveMatch({ m, onExit }: { m: Match; onExit: () => void }) {
             {feed.map((e, i) => (
               <div key={feed.length - i} className={cx('px-3 py-1.5 border-b border-ink-800 text-xs flex gap-2', i === 0 && 'flash', e.kind === 'goal' && 'bg-accent/10 font-semibold', e.kind === 'tactic' && 'text-info')}>
                 <span className="font-mono text-ink-400 w-12 shrink-0">{fmtT(e.t)}</span>
-                <span className={cx(e.kind === 'goal' ? (e.team === 0 ? 'text-accent' : 'text-white') : e.kind === 'save' ? 'text-ink-200' : 'text-ink-300')}>{e.text}</span>
+                <span className={cx(e.kind === 'goal' ? (e.team === 0 ? 'text-[#7fb2ff]' : 'text-[#ffb066]') : e.kind === 'save' ? 'text-ink-200' : 'text-ink-300')}>{e.text}</span>
               </div>
             ))}
           </div>
@@ -236,15 +236,15 @@ function MatchReport({ m }: { m: Match }) {
   const withEvents = m.games.map((gr, i) => ({ gr, i })).filter(x => x.gr.events?.length);
   const [gi, setGi] = useState(withEvents.length ? withEvents[withEvents.length - 1].i : -1);
   return (
-    <div className="p-3 flex flex-col gap-3">
-      <div className="bg-ink-900 border border-ink-700 py-5 flex items-center justify-center gap-10">
+    <div className="flex flex-col gap-4">
+      <div className="card relative overflow-hidden py-7 flex items-center justify-center gap-10 flex-wrap" style={{ background: 'linear-gradient(90deg, #3d8bff2e 0%, #3d8bff08 35%, transparent 50%, #ff8a1f08 65%, #ff8a1f2e 100%), linear-gradient(180deg, #151a24, #121620)' }}>
         <div className="flex items-center gap-3"><OrgLink org={A} /></div>
         <div className="text-center"><div className="text-[11px] text-ink-400 uppercase">{t.short} · {m.label} · {fmtDate(m.date)}</div><div className="text-4xl font-black tnum">{wa} - {wb}</div></div>
         <div className="flex items-center gap-3"><OrgLink org={B} /></div>
       </div>
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 @4xl:grid-cols-3 gap-4">
         <Panel title="Jeux" pad={false}><table className="data"><tbody>{m.games.map((gr, i) => <tr key={i} className={cx(!!gr.events?.length && 'cursor-pointer', gi === i && 'me')} onClick={() => gr.events?.length && setGi(i)}><td>Jeu {i + 1}</td><td className="tnum font-semibold">{gr.scoreA} - {gr.scoreB}{gr.ot ? ' (prol.)' : ''}</td><td>{gr.scoreA > gr.scoreB ? A.tag : B.tag}</td><td className="text-ink-400 tnum">{Math.round(gr.possessionA * 100)}% poss.</td></tr>)}</tbody></table></Panel>
-        <Panel title="Statistiques de la série" className="col-span-2" pad={false}>
+        <Panel title="Statistiques de la série" className="@4xl:col-span-2" pad={false}>
           {agg.length ? <table className="data"><thead><tr><th>Joueur</th><th>Équipe</th><th>Score</th><th>Buts</th><th>PD</th><th>Arrêts</th><th>Tirs</th><th>Démos</th><th>Note</th></tr></thead><tbody>
             {agg.sort((a, b) => b.rating - a.rating).map((s, i) => <tr key={s.pid}><td><PlayerLink p={g.players[s.pid]} />{i === 0 && <span className="ml-1"><Pill tone="accent">MVP</Pill></span>}</td><td>{s.side === 'A' ? A.tag : B.tag}</td><td className="tnum">{s.score}</td><td className="tnum">{s.goals}</td><td className="tnum">{s.assists}</td><td className="tnum">{s.saves}</td><td className="tnum">{s.shots}</td><td className="tnum">{s.demos}</td><td className="tnum font-semibold">{s.rating.toFixed(2)}</td></tr>)}
           </tbody></table> : <Empty>Statistiques détaillées archivées.</Empty>}

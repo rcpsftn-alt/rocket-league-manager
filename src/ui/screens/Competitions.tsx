@@ -19,7 +19,7 @@ export function Competitions() {
   const seasons = [...new Set(Object.values(g.tournaments).map(t => t.season))].sort((a, b) => b - a);
   const ts = Object.values(g.tournaments).filter(t => t.season === season && (region === 'ALL' || t.region === region || t.region === 'INTL')).sort((a, b) => a.start.localeCompare(b.start));
   return (
-    <div className="p-3 flex flex-col gap-3">
+    <div className="flex flex-col gap-4">
       <div className="flex gap-2 items-center">
         <select value={season} onChange={e => setSeason(+e.target.value)}>{seasons.map(s => <option key={s}>{s}</option>)}</select>
         <div className="flex gap-1">{(['ALL', ...REGIONS] as const).map(r => <Btn key={r} small kind={region === r ? 'primary' : 'default'} onClick={() => setRegion(r)}>{r === 'ALL' ? 'Tout' : r}</Btn>)}</div>
@@ -76,7 +76,7 @@ export function TournamentView({ id }: { id: string }) {
   for (const m of all) for (const gr of m.games) for (const s of [...gr.statsA, ...gr.statsB]) { const c = pstats.get(s.pid) ?? { goals: 0, saves: 0, assists: 0, r: 0, n: 0 }; c.goals += s.goals; c.saves += s.saves; c.assists += s.assists; c.r += s.rating; c.n++; pstats.set(s.pid, c); }
   const topP = [...pstats.entries()].filter(([, v]) => v.n >= 4).sort((a, b) => b[1].r / b[1].n - a[1].r / a[1].n).slice(0, 10);
   return (
-    <div className="p-3 flex flex-col gap-3">
+    <div className="flex flex-col gap-4">
       <Panel pad={false}>
         <div className="flex items-center gap-6 p-3">
           <div className="flex-1"><div className="text-lg font-bold">{t.name}</div><div className="text-ink-300 text-xs">{fmtDate(t.start)} → {fmtDate(t.end)} · {t.lan ? 'LAN' : 'En ligne'} · {t.region === 'INTL' ? 'International' : REGION_INFO[t.region].name}</div></div>
@@ -90,7 +90,7 @@ export function TournamentView({ id }: { id: string }) {
       {t.stages.length > 0 && (
         <>
           <Tabs tabs={t.stages.map(s => s.name)} value={stage.name} onChange={n => setStageIdx(t.stages.findIndex(s => s.name === n))} />
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 @4xl:grid-cols-3 gap-4">
             {stage.format !== 'single' && (
               <Panel title="Classement" pad={false}>
                 <table className="data"><thead><tr><th>#</th><th>Équipe</th><th>V-D</th><th>Jeux</th><th></th></tr></thead><tbody>
@@ -114,7 +114,7 @@ export function TournamentView({ id }: { id: string }) {
           </div>
         </>
       )}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 @3xl:grid-cols-2 gap-4">
         {t.placements.length > 0 && (
           <Panel title="Classement final & gains" pad={false}>
             <table className="data"><thead><tr><th>Place</th><th>Équipe</th><th>Gains</th><th>Points</th></tr></thead><tbody>
@@ -152,7 +152,7 @@ export function Schedule() {
   evs.sort((a, b) => a.date.localeCompare(b.date));
   const months = [...new Set(evs.map(e => e.date.slice(0, 7)))];
   return (
-    <div className="p-3 grid grid-cols-3 gap-3">
+    <div className="grid grid-cols-1 @4xl:grid-cols-3 gap-4">
       {months.map(mo => (
         <Panel key={mo} title={fmtDate(`${mo}-01`).replace(/^1 /, '')} pad={false}>
           {evs.filter(e => e.date.startsWith(mo)).map((e, i) => (
@@ -175,7 +175,7 @@ export function Rankings() {
   const pts = g.circuitPoints[g.season] ?? {};
   const prevTop = g.rankingHistory[g.rankingHistory.length - 1]?.top ?? [];
   return (
-    <div className="p-3 flex flex-col gap-3">
+    <div className="flex flex-col gap-4">
       <div className="flex gap-2 items-center"><Tabs tabs={['Mondial (Elo)', 'Points circuit', 'Joueurs', 'Réputation'] as const} value={tab} onChange={setTab} /><div className="flex-1" /><div className="flex gap-1">{(['ALL', ...REGIONS] as const).map(r => <Btn key={r} small kind={region === r ? 'primary' : 'default'} onClick={() => setRegion(r)}>{r === 'ALL' ? 'Monde' : r}</Btn>)}</div></div>
       <Panel pad={false}>
         {tab === 'Mondial (Elo)' && <table className="data"><thead><tr><th>#</th><th>Organisation</th><th>Région</th><th>Elo</th><th>Saison précédente</th><th>Pts circuit</th><th>Trophées</th></tr></thead><tbody>
@@ -200,7 +200,7 @@ export function History() {
   const [tab, setTab] = useState<'Palmarès' | 'Records' | 'Ma carrière'>('Palmarès');
   const r = g.records;
   return (
-    <div className="p-3 flex flex-col gap-3">
+    <div className="flex flex-col gap-4">
       <Tabs tabs={['Palmarès', 'Records', 'Ma carrière'] as const} value={tab} onChange={setTab} />
       {tab === 'Palmarès' && (g.history.length ? g.history.slice().reverse().map(h => (
         <Panel key={h.season} title={`Saison ${h.season}`} pad={false}>

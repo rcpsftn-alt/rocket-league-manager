@@ -12,7 +12,7 @@ export function News() {
   const [kind, setKind] = useState<NewsItem['kind'] | 'all' | 'mine'>('all');
   const list = g.news.filter(n => kind === 'all' || (kind === 'mine' ? (g.userOrgId && n.orgIds.includes(g.userOrgId)) : n.kind === kind));
   return (
-    <div className="p-3 flex flex-col gap-3">
+    <div className="flex flex-col gap-4">
       <div className="flex gap-1 flex-wrap">
         <Btn small kind={kind === 'all' ? 'primary' : 'default'} onClick={() => setKind('all')}>Tout</Btn>
         {g.userOrgId && <Btn small kind={kind === 'mine' ? 'primary' : 'default'} onClick={() => setKind('mine')}>Mon club</Btn>}
@@ -42,7 +42,7 @@ export function Settings() {
   const { setGame, notify } = useStore();
   const [name, setName] = useState(g.saveName);
   return (
-    <div className="p-3 grid grid-cols-2 gap-3 max-w-4xl">
+    <div className="grid grid-cols-1 @3xl:grid-cols-2 gap-4 max-w-4xl">
       <Panel title="Sauvegarde">
         <div className="flex flex-col gap-3">
           <Field label="Nom de la sauvegarde"><input value={name} onChange={e => setName(e.target.value)} onBlur={() => act(gs => { gs.saveName = name; })} /></Field>
@@ -61,7 +61,7 @@ export function Settings() {
           <div>Créée le {new Date(g.createdAt).toLocaleDateString('fr-FR')}</div>
         </div>
       </Panel>
-      <Panel title="À propos" className="col-span-2">
+      <Panel title="À propos" className="@4xl:col-span-2">
         <div className="text-xs text-ink-300 leading-relaxed">Rocket League Manager est une simulation fictive : organisations, joueurs, sponsors et tournois sont générés. Le moteur de match simule chaque jeu phase par phase à partir des attributs, de la forme, de la fatigue, du moral, de la chimie et des consignes tactiques. Toutes les statistiques affichées proviennent de la simulation.</div>
       </Panel>
     </div>

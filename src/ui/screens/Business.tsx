@@ -4,6 +4,7 @@ import { useGame, useStore, act } from '../store';
 import type { FinanceCategory } from '../../engine/types';
 import { INCOME_CATS } from '../../engine/types';
 import { Btn, cx, Empty, Field, Modal, Panel, Pill, Stat, Tabs, Bar, OrgLink } from '../components/ui';
+import { Kpis } from '../components/ui';
 import { fmtDate, fmtShortDate, money, num } from '../../engine/util';
 import { ACADEMY_COST, bankruptcyRisk, FACILITY_COST, forecastMonth, summarize, totalFollowers, activeDeals } from '../../engine/finance';
 import { CAMPAIGNS, proposeSponsorDeal, runCampaign, sponsorInterest, sponsorValuation, terminateDeal, type CampaignKind, type SponsorProposal } from '../../engine/commercial';
@@ -23,20 +24,18 @@ export function Finances() {
   const risk = bankruptcyRisk(g, org);
   const runway = f.net < 0 ? org.balance / -f.net : Infinity;
   return (
-    <div className="p-3 flex flex-col gap-3">
-      <Panel pad={false}>
-        <div className="grid grid-cols-6 divide-x divide-ink-700">
-          <div className="p-3"><Stat label="Trésorerie" value={money(org.balance)} tone={org.balance < 0 ? 'bad' : undefined} /></div>
-          <div className="p-3"><Stat label="Résultat mensuel prévu" value={`${f.net >= 0 ? '+' : ''}${money(f.net)}`} tone={f.net >= 0 ? 'good' : 'bad'} /></div>
-          <div className="p-3"><Stat label="Résultat saison" value={money(season.income + season.expense)} sub={`+${money(season.income)} / ${money(season.expense)}`} /></div>
-          <div className="p-3"><Stat label="Dette" value={money(org.debt)} sub={org.debt ? 'Intérêts 0,8%/mois' : 'Ligne de crédit auto. si trésorerie < 0'} tone={org.debt ? 'bad' : undefined} /></div>
-          <div className="p-3"><Stat label="Autonomie" value={runway === Infinity ? '∞' : `${runway.toFixed(1)} mois`} /></div>
-          <div className="p-3"><Stat label="Risque de faillite" value={`${risk}%`} tone={risk > 40 ? 'bad' : risk > 15 ? undefined : 'good'} /></div>
-        </div>
-      </Panel>
+    <div className="flex flex-col gap-4">
+      <Kpis>
+          <div className=""><Stat label="Trésorerie" value={money(org.balance)} tone={org.balance < 0 ? 'bad' : undefined} /></div>
+          <div className=""><Stat label="Résultat mensuel prévu" value={`${f.net >= 0 ? '+' : ''}${money(f.net)}`} tone={f.net >= 0 ? 'good' : 'bad'} /></div>
+          <div className=""><Stat label="Résultat saison" value={money(season.income + season.expense)} sub={`+${money(season.income)} / ${money(season.expense)}`} /></div>
+          <div className=""><Stat label="Dette" value={money(org.debt)} sub={org.debt ? 'Intérêts 0,8%/mois' : 'Ligne de crédit auto. si trésorerie < 0'} tone={org.debt ? 'bad' : undefined} /></div>
+          <div className=""><Stat label="Autonomie" value={runway === Infinity ? '∞' : `${runway.toFixed(1)} mois`} /></div>
+          <div className=""><Stat label="Risque de faillite" value={`${risk}%`} tone={risk > 40 ? 'bad' : risk > 15 ? undefined : 'good'} /></div>
+        </Kpis>
       <Tabs tabs={['Vue d\'ensemble', 'Compte de résultat', 'Journal'] as const} value={tab} onChange={setTab} />
       {tab === 'Vue d\'ensemble' && (
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 @4xl:grid-cols-3 gap-4">
           <Panel title="Budget mensuel prévisionnel" pad={false}>
             <table className="data"><tbody>
               {Object.entries(f.income).map(([k, v]) => <tr key={k}><td>{k}</td><td className="text-right tnum text-good">+{money(v)}</td></tr>)}
@@ -45,10 +44,10 @@ export function Finances() {
             </tbody></table>
             <div className="p-3 text-[11px] text-ink-400">Hors cashprizes, transferts, primes, voyages LAN et campagnes ponctuelles.</div>
           </Panel>
-          <Panel title="Revenus vs dépenses (mensuel)" className="col-span-2">
+          <Panel title="Revenus vs dépenses (mensuel)" className="@4xl:col-span-2">
             <div className="h-56">{monthly.length ? <ResponsiveContainer><BarChart data={monthly}><CartesianGrid stroke="#23272e" vertical={false} /><XAxis dataKey="month" tick={{ fill: '#8a919c', fontSize: 10 }} /><YAxis tick={{ fill: '#8a919c', fontSize: 10 }} width={50} tickFormatter={v => money(v)} /><Tooltip {...tt} /><Legend wrapperStyle={{ fontSize: 11 }} /><RBar dataKey="income" name="Revenus" fill="#3fcf8e" isAnimationActive={false} /><RBar dataKey="expense" name="Dépenses" fill="#f25555" isAnimationActive={false} /></BarChart></ResponsiveContainer> : <Empty>Disponible après le premier bilan mensuel.</Empty>}</div>
           </Panel>
-          <Panel title="Évolution de la trésorerie" className="col-span-3">
+          <Panel title="Évolution de la trésorerie" className="@4xl:col-span-3">
             <div className="h-48">{monthly.length ? <ResponsiveContainer><LineChart data={monthly}><CartesianGrid stroke="#23272e" vertical={false} /><XAxis dataKey="month" tick={{ fill: '#8a919c', fontSize: 10 }} /><YAxis tick={{ fill: '#8a919c', fontSize: 10 }} width={50} tickFormatter={v => money(v)} /><Tooltip {...tt} /><Line dataKey="balance" name="Trésorerie" stroke="#ff7a1a" dot={false} isAnimationActive={false} /></LineChart></ResponsiveContainer> : <Empty>—</Empty>}</div>
           </Panel>
         </div>
@@ -80,7 +79,7 @@ export function Sponsors() {
   const slots = 3 + org.facilities;
   const brands = Object.values(g.sponsors).map(s => ({ s, i: sponsorInterest(g, s, org), v: sponsorValuation(g, s, org) })).sort((a, b) => b.i.score - a.i.score);
   return (
-    <div className="p-3 flex flex-col gap-3">
+    <div className="flex flex-col gap-4">
       <Panel title={`Partenariats actifs (${deals.length}/${slots} emplacements)`} pad={false}>
         {deals.length ? (
           <table className="data"><thead><tr><th>Marque</th><th>Secteur</th><th>Mensuel</th><th>Échéance</th><th>Objectif</th><th>Posts ce mois</th><th>Satisfaction</th><th></th></tr></thead><tbody>
@@ -142,16 +141,14 @@ export function Social() {
   const hist = s.history.map(h => ({ d: h.date.slice(0, 7), total: h.total }));
   const plats: [string, number][] = [['X', s.x], ['TikTok', s.tiktok], ['YouTube', s.youtube], ['Twitch', s.twitch], ['Discord', s.discord]];
   return (
-    <div className="p-3 grid grid-cols-3 gap-3">
-      <Panel pad={false} className="col-span-3">
-        <div className="grid grid-cols-8 divide-x divide-ink-700">
-          {plats.map(([l, v]) => <div key={l} className="p-3"><Stat label={l} value={num(v)} /></div>)}
-          <div className="p-3"><Stat label="Total" value={num(totalFollowers(org))} tone="accent" /></div>
-          <div className="p-3"><Stat label="Sentiment" value={`${Math.round(s.sentiment)}%`} tone={s.sentiment > 65 ? 'good' : s.sentiment < 45 ? 'bad' : undefined} /></div>
-          <div className="p-3"><Stat label="Engagement" value={`${Math.round(s.engagement)}%`} sub={`${s.postsThisMonth} posts ce mois`} /></div>
-        </div>
-      </Panel>
-      <Panel title="Campagnes & contenus" className="col-span-2" pad={false}>
+    <div className="grid grid-cols-1 @4xl:grid-cols-3 gap-4">
+      <div className="@4xl:col-span-3"><Kpis>
+          {plats.map(([l, v]) => <div key={l} className=""><Stat label={l} value={num(v)} /></div>)}
+          <div className=""><Stat label="Total" value={num(totalFollowers(org))} tone="accent" /></div>
+          <div className=""><Stat label="Sentiment" value={`${Math.round(s.sentiment)}%`} tone={s.sentiment > 65 ? 'good' : s.sentiment < 45 ? 'bad' : undefined} /></div>
+          <div className=""><Stat label="Engagement" value={`${Math.round(s.engagement)}%`} sub={`${s.postsThisMonth} posts ce mois`} /></div>
+        </Kpis></div>
+      <Panel title="Campagnes & contenus" className="@4xl:col-span-2" pad={false}>
         <table className="data"><thead><tr><th>Action</th><th>Description</th><th>Coût</th><th>Recharge</th><th></th></tr></thead><tbody>
           {(Object.keys(CAMPAIGNS) as CampaignKind[]).map(k => {
             const c = CAMPAIGNS[k]; const last = g.campaignsUsed[k];
@@ -166,7 +163,7 @@ export function Social() {
         <p className="text-[11px] text-ink-400 mt-2">Augmente le plafond d'audience organique et la qualité des campagnes. Prélevé chaque mois.</p>
         <div className="mt-4 text-xs text-ink-300">Plus votre audience est grande, plus les revenus de contenu (YouTube, Twitch) et l'intérêt des sponsors augmentent. Les titres majeurs provoquent des pics de popularité.</div>
       </Panel>
-      <Panel title="Croissance de l'audience" className="col-span-3">
+      <Panel title="Croissance de l'audience" className="@4xl:col-span-3">
         <div className="h-48">{hist.length > 1 ? <ResponsiveContainer><LineChart data={hist}><CartesianGrid stroke="#23272e" vertical={false} /><XAxis dataKey="d" tick={{ fill: '#8a919c', fontSize: 10 }} /><YAxis tick={{ fill: '#8a919c', fontSize: 10 }} width={50} tickFormatter={v => num(v)} /><Tooltip contentStyle={tt.contentStyle} formatter={v => num(Number(v))} /><Line dataKey="total" stroke="#ff7a1a" dot={false} isAnimationActive={false} /></LineChart></ResponsiveContainer> : <Empty>Historique mensuel en cours de constitution.</Empty>}</div>
       </Panel>
     </div>
@@ -179,7 +176,7 @@ export function Club() {
   if (!g.userOrgId) {
     const vs = vacancies(g);
     return (
-      <div className="p-3">
+      <div className="">
         <Panel title="Postes vacants" pad={false}>
           {vs.length ? <table className="data"><tbody>{vs.map(o => <tr key={o.id}><td><OrgLink org={o} /></td><td>{REGION_INFO[o.region].name}</td><td className="tnum">Rép. {Math.round(o.reputation)}</td><td className="text-right"><Btn small kind="primary" onClick={() => notify(act(gs => applyForJob(gs, o.id)))}>Postuler</Btn></td></tr>)}</tbody></table> : <Empty>Aucun poste vacant.</Empty>}
         </Panel>
@@ -195,7 +192,7 @@ export function Club() {
     notify('Amélioration effectuée.', 'good');
   };
   return (
-    <div className="p-3 grid grid-cols-3 gap-3">
+    <div className="grid grid-cols-1 @4xl:grid-cols-3 gap-4">
       <Panel title="Board">
         <div className="mb-3"><div className="flex justify-between text-xs mb-1"><span className="text-ink-300">Confiance</span><span className="tnum">{Math.round(org.boardConfidence)}%</span></div><Bar value={org.boardConfidence} /></div>
         <div className="text-sm">Objectif de la saison : <b className="text-accent">{org.objective}</b></div>
@@ -212,10 +209,10 @@ export function Club() {
         <div className="text-[11px] text-ink-400">Chaque niveau augmente aussi les frais mensuels de fonctionnement.</div>
       </Panel>
       <Panel title="Manager">
-        <div className="grid grid-cols-2 gap-3"><Stat label="Nom" value={<span className="text-base">{g.manager.name}</span>} /><Stat label="Réputation" value={Math.round(g.manager.reputation)} /><Stat label="Expérience" value={`${g.manager.experience} saison(s)`} /><Stat label="Trophées" value={g.manager.trophies.length} /></div>
+        <div className="grid grid-cols-1 @3xl:grid-cols-2 gap-4"><Stat label="Nom" value={<span className="text-base">{g.manager.name}</span>} /><Stat label="Réputation" value={Math.round(g.manager.reputation)} /><Stat label="Expérience" value={`${g.manager.experience} saison(s)`} /><Stat label="Trophées" value={g.manager.trophies.length} /></div>
         <div className="text-xs text-ink-400 mt-3">En poste depuis le {g.manager.hiredDate ? fmtDate(g.manager.hiredDate) : '—'}</div>
       </Panel>
-      <Panel title="Identité" className="col-span-3">
+      <Panel title="Identité" className="@4xl:col-span-3">
         <div className="grid grid-cols-6 gap-4 text-sm">
           <Stat label="Organisation" value={<span className="text-base">{org.name}</span>} /><Stat label="Tag" value={org.tag} /><Stat label="Siège" value={<span className="text-base">{org.hq}</span>} /><Stat label="Fondée" value={org.founded} /><Stat label="Fans" value={num(org.fans)} /><Stat label="Trophées" value={org.trophies.length} />
         </div>

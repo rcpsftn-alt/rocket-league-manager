@@ -1,6 +1,7 @@
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { useGame, useStore, act } from '../store';
-import { Btn, CondDot, cx, Empty, moraleLabel, moraleTone, OrgLink, Panel, Pill, PlayerLink, Stat, AbilityCell } from '../components/ui';
+import { Avatar, Bar, Btn, CondDot, cx, Empty, moraleLabel, moraleTone, OrgBadge, OrgLink, Panel, Pill, PlayerLink, Stat, AbilityCell } from '../components/ui';
+import { Kpis } from '../components/ui';
 import { fmtDate, fmtShortDate, money } from '../../engine/util';
 import { orgPlayers } from '../../engine/roster';
 import { userNextMatch } from '../../engine/competitions';
@@ -31,7 +32,8 @@ export function Dashboard() {
   const nav = useStore(s => s.nav);
   if (!g.userOrgId) return <Unemployed />;
   const org = g.orgs[g.userOrgId];
-  const roster = orgPlayers(g, org.id).sort((a, b) => (a.squadRole === 'starter' ? 0 : a.squadRole === 'sub' ? 1 : 2) - (b.squadRole === 'starter' ? 0 : b.squadRole === 'sub' ? 1 : 2));
+  const order = (r: string | null) => (r === 'starter' ? 0 : r === 'sub' ? 1 : 2);
+  const roster = orgPlayers(g, org.id).sort((a, b) => order(a.squadRole) - order(b.squadRole));
   const next = userNextMatch(g);
   const recent = Object.values(g.matches).filter(m => m.played && (m.teamA === org.id || m.teamB === org.id)).sort((a, b) => b.date.localeCompare(a.date)).slice(0, 6);
   const f = forecastMonth(g, org);
@@ -39,119 +41,118 @@ export function Dashboard() {
   const pts = g.circuitPoints[g.season]?.[org.id] ?? 0;
   const chem = teamChemistry(g, org, roster.filter(p => p.squadRole === 'starter').map(p => p.id));
   const balHist = g.monthly.filter(m => m.orgId === org.id).slice(-12);
-  const unread = g.inbox.filter(i => !i.read).slice(0, 6);
+  const unread = g.inbox.filter(i => !i.read).slice(0, 5);
+  const risk = bankruptcyRisk(g, org);
+  const inc = Object.values(f.income).reduce((a, b) => a + b, 0), exp = Object.values(f.expense).reduce((a, b) => a + b, 0);
 
   return (
-    <div className="p-3 grid grid-cols-12 gap-3 auto-rows-min">
-      <Panel className="col-span-12" pad={false}>
-        <div className="grid grid-cols-7 divide-x divide-ink-700">
-          {[
-            <Stat key="r" label={`Rang ${REGION_INFO[org.region].name}`} value={`#${regionRank(g, org.id)}`} sub={`Mondial #${worldRank(g, org.id)} · Elo ${org.elo}`} tone="accent" />,
-            <Stat key="p" label="Points circuit" value={pts} sub={`Saison ${g.season}`} />,
-            <Stat key="b" label="Trésorerie" value={money(org.balance)} sub={`Prévision ${f.net >= 0 ? '+' : ''}${money(f.net)}/mois`} tone={org.balance < 0 ? 'bad' : undefined} />,
-            <Stat key="c" label="Cohésion" value={`${Math.round(chem)}%`} sub="Titulaires" tone={chem > 60 ? 'good' : chem < 35 ? 'bad' : undefined} />,
-            <Stat key="bo" label="Board" value={`${Math.round(org.boardConfidence)}%`} sub={org.objective} tone={org.boardConfidence < 30 ? 'bad' : org.boardConfidence > 65 ? 'good' : undefined} />,
-            <Stat key="rep" label="Réputation" value={Math.round(org.reputation)} sub={`${org.trophies.length} trophée(s)`} />,
-            <Stat key="risk" label="Risque faillite" value={`${bankruptcyRisk(g, org)}%`} tone={bankruptcyRisk(g, org) > 40 ? 'bad' : 'good'} sub={org.debt ? `Dette ${money(org.debt)}` : 'Aucune dette'} />,
-          ].map((x, i) => <div key={i} className="p-3">{x}</div>)}
-        </div>
-      </Panel>
+    <div className="grid grid-cols-1 @5xl:grid-cols-3 gap-4">
+      <div className="col-span-full"><Kpis>
+        <div><Stat label={`Rang ${REGION_INFO[org.region].name}`} value={`#${regionRank(g, org.id)}`} sub={`#${worldRank(g, org.id)} mondial · Elo ${org.elo}`} tone="accent" /></div>
+        <div><Stat label="Points circuit" value={pts} sub={`Saison ${g.season}`} /></div>
+        <div><Stat label="Cohésion" value={`${Math.round(chem)}%`} sub="Titulaires" tone={chem > 60 ? 'good' : chem < 35 ? 'bad' : undefined} /></div>
+        <div><Stat label="Confiance du board" value={`${Math.round(org.boardConfidence)}%`} sub={org.objective} tone={org.boardConfidence < 30 ? 'bad' : org.boardConfidence > 65 ? 'good' : undefined} /></div>
+        <div><Stat label="Réputation" value={Math.round(org.reputation)} sub={`${org.trophies.length} trophée(s)`} /></div>
+        <div><Stat label="Risque faillite" value={`${risk}%`} tone={risk > 40 ? 'bad' : 'good'} sub={org.debt ? `Dette ${money(org.debt)}` : 'Aucune dette'} /></div>
+      </Kpis></div>
 
-      <Panel title="Prochain match" className="col-span-4">
-        {next ? (() => {
-          const opp = g.orgs[next.teamA === org.id ? next.teamB : next.teamA];
-          const t = g.tournaments[next.tournamentId];
-          return (
-            <div className="flex flex-col gap-3">
-              <div className="text-[11px] text-ink-300">{t.short} · {next.label} · Bo{next.bestOf}</div>
-              <div className="flex items-center justify-between">
-                <OrgLink org={org} />
-                <span className="text-ink-400 text-xs">vs</span>
-                <OrgLink org={opp} />
+      <section className="card @5xl:col-span-2 relative overflow-hidden min-h-[230px]">
+        <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(520px 220px at 18% 55%, #3d8bff24, transparent 70%), radial-gradient(520px 220px at 82% 55%, #ff8a1f24, transparent 70%)' }} />
+        <div className="relative p-5 h-full flex flex-col">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold uppercase tracking-[0.14em] text-ink-300">Prochain match</span>
+            {next && <Pill tone={g.tournaments[next.tournamentId].lan ? 'accent' : 'default'}>{g.tournaments[next.tournamentId].lan ? 'LAN' : 'En ligne'}</Pill>}
+          </div>
+          {next ? (() => {
+            const opp = g.orgs[next.teamA === org.id ? next.teamB : next.teamA];
+            const t = g.tournaments[next.tournamentId];
+            const today = next.date <= g.date;
+            return (
+              <div className="flex-1 flex flex-col justify-center">
+                <div className="flex items-center justify-center gap-6 @3xl:gap-14 my-4">
+                  <div className="flex flex-col items-center gap-2 min-w-0"><OrgBadge org={org} size={64} /><div className="font-bold text-center truncate max-w-44">{org.name}</div><div className="text-xs text-ink-400">Elo {org.elo}</div></div>
+                  <div className="text-center"><div className="text-3xl font-black text-ink-500">VS</div><div className="text-xs text-ink-300 mt-1">Bo{next.bestOf}</div></div>
+                  <div className="flex flex-col items-center gap-2 min-w-0"><OrgBadge org={opp} size={64} /><div className="font-bold text-center truncate max-w-44 link" onClick={() => nav('org', opp.id)}>{opp.name}</div><div className="text-xs text-ink-400">Elo {opp.elo}</div></div>
+                </div>
+                <div className="flex items-center justify-between flex-wrap gap-3">
+                  <div className="text-sm"><span className="font-semibold">{t.short}</span> <span className="text-ink-400">· {next.label} · {fmtDate(next.date, true)}</span></div>
+                  {today ? <Btn kind="primary" onClick={() => nav('match', next.id)}>Aller au match →</Btn> : <Btn onClick={() => nav('tournament', t.id)}>Voir la compétition</Btn>}
+                </div>
               </div>
-              <div className="flex items-center justify-between text-xs text-ink-300">
-                <span>{fmtDate(next.date, true)}</span>
-                <span>Elo {org.elo} – {opp.elo}</span>
-              </div>
-              {next.date <= g.date ? <Btn kind="primary" onClick={() => nav('match', next.id)}>Aller au match</Btn> : <Btn onClick={() => nav('tournament', t.id)}>Voir la compétition</Btn>}
-            </div>
-          );
-        })() : <Empty>Aucun match programmé. {upcoming[0] ? `Prochaine compétition : ${upcoming[0].short} (${fmtShortDate(upcoming[0].start)})` : ''}</Empty>}
-      </Panel>
-
-      <Panel title="Résultats récents" className="col-span-4" pad={false}>
-        {recent.length ? (
-          <table className="data"><tbody>
-            {recent.map(m => { const s = seriesLine(g, m, org.id); return (
-              <tr key={m.id} className="cursor-pointer" onClick={() => nav('match', m.id)}>
-                <td className="w-6"><span className={cx('font-bold', s.won ? 'text-good' : 'text-bad')}>{s.won ? 'V' : 'D'}</span></td>
-                <td className="tnum font-semibold">{s.my}-{s.their}</td>
-                <td><OrgLink org={s.opp} /></td>
-                <td className="text-ink-400 text-[11px]">{g.tournaments[m.tournamentId].short}</td>
-              </tr>); })}
-          </tbody></table>
-        ) : <Empty>Pas encore de match joué.</Empty>}
-      </Panel>
-
-      <Panel title="Finances" className="col-span-4" right={<span className="link" onClick={() => nav('finances')}>Détails</span>}>
-        <div className="grid grid-cols-2 gap-2 text-xs mb-2">
-          <div className="text-ink-300">Revenus prévus</div><div className="text-right tnum text-good">{money(Object.values(f.income).reduce((a, b) => a + b, 0))}</div>
-          <div className="text-ink-300">Dépenses prévues</div><div className="text-right tnum text-bad">-{money(Object.values(f.expense).reduce((a, b) => a + b, 0))}</div>
+            );
+          })() : <div className="flex-1 flex items-center justify-center text-ink-400 text-sm text-center">Aucun match programmé.{upcoming[0] ? ` Prochaine compétition : ${upcoming[0].short} (${fmtShortDate(upcoming[0].start)})` : ''}</div>}
         </div>
-        <div className="h-24">
+      </section>
+
+      <Panel title="Finances" right={<span className="link" onClick={() => nav('finances')}>Détails →</span>}>
+        <div className={cx('text-[28px] font-bold tnum leading-none', org.balance < 0 && 'text-bad')}>{money(org.balance)}</div>
+        <div className={cx('text-sm mt-1.5 font-medium', f.net >= 0 ? 'text-good' : 'text-bad')}>{f.net >= 0 ? '+' : ''}{money(f.net)} / mois prévus</div>
+        <div className="grid grid-cols-2 gap-3 mt-4 text-sm">
+          <div className="rounded-lg bg-good/8 border border-good/20 p-2.5"><div className="text-[11px] text-ink-400">Revenus</div><div className="font-semibold text-good tnum">{money(inc)}</div></div>
+          <div className="rounded-lg bg-bad/8 border border-bad/20 p-2.5"><div className="text-[11px] text-ink-400">Dépenses</div><div className="font-semibold text-bad tnum">{money(exp)}</div></div>
+        </div>
+        <div className="h-20 mt-3">
           {balHist.length > 1 ? (
-            <ResponsiveContainer><AreaChart data={balHist}><XAxis dataKey="month" hide /><YAxis hide /><Tooltip contentStyle={{ background: '#15181c', border: '1px solid #2e333b', fontSize: 11 }} formatter={(v) => money(Number(v))} /><Area dataKey="balance" stroke="#ff7a1a" fill="#ff7a1a22" isAnimationActive={false} /></AreaChart></ResponsiveContainer>
-          ) : <Empty>L'historique apparaîtra après le premier mois.</Empty>}
+            <ResponsiveContainer><AreaChart data={balHist}><XAxis dataKey="month" hide /><YAxis hide /><Tooltip contentStyle={{ background: '#171c27', border: '1px solid #313a4c', borderRadius: 8, fontSize: 12 }} formatter={(v) => money(Number(v))} /><Area dataKey="balance" stroke="#ff8a1f" strokeWidth={2} fill="#ff8a1f22" isAnimationActive={false} /></AreaChart></ResponsiveContainer>
+          ) : <div className="text-xs text-ink-500 pt-6 text-center">Historique disponible après le premier mois</div>}
         </div>
       </Panel>
 
-      <Panel title="Effectif" className="col-span-7" pad={false} right={<span className="link" onClick={() => nav('squad')}>Gérer</span>}>
+      <Panel title="Effectif" className="@5xl:col-span-2" pad={false} right={<span className="link" onClick={() => nav('squad')}>Gérer →</span>}>
         <table className="data">
-          <thead><tr><th></th><th>Joueur</th><th>Rôle</th><th>Niv.</th><th>Forme</th><th>Moral</th><th>Fatigue</th><th>Contrat</th></tr></thead>
+          <thead><tr><th>Joueur</th><th>Statut</th><th>Niv.</th><th>Forme</th><th>Moral</th><th>Fatigue</th><th>Contrat</th></tr></thead>
           <tbody>
             {roster.map(p => (
               <tr key={p.id}>
-                <td><CondDot p={p} /></td>
-                <td><PlayerLink p={p} /></td>
-                <td className="text-ink-300">{p.squadRole === 'starter' ? 'Titulaire' : p.squadRole === 'sub' ? 'Remplaçant' : 'Académie'}</td>
+                <td><div className="flex items-center gap-3"><Avatar p={p} org={org} size={32} /><div className="min-w-0"><PlayerLink p={p} /><div className="text-[11px] text-ink-400">{p.position}e homme · {p.playstyle}</div></div></div></td>
+                <td>{p.squadRole === 'starter' ? <Pill tone="accent">Titulaire</Pill> : p.squadRole === 'sub' ? <Pill>Remplaçant</Pill> : <Pill tone="info">Académie</Pill>}</td>
                 <td><AbilityCell g={g} p={p} /></td>
-                <td className="tnum">{recentForm(p) ? recentForm(p).toFixed(1) : '—'}</td>
+                <td className="tnum text-ink-200">{recentForm(p) ? recentForm(p).toFixed(1) : '—'}</td>
                 <td><Pill tone={moraleTone(p.cond.morale)}>{moraleLabel(p.cond.morale)}</Pill></td>
-                <td className="tnum">{Math.round(p.cond.fatigue)}%</td>
-                <td className="text-ink-300 text-[11px]">{p.contract ? fmtShortDate(p.contract.end) + ' ' + p.contract.end.slice(0, 4) : '—'}</td>
+                <td className="w-32"><div className="flex items-center gap-2"><CondDot p={p} /><Bar value={p.cond.fatigue} color={p.cond.fatigue > 70 ? '#f87171' : p.cond.fatigue > 45 ? '#facc15' : '#34d399'} /></div></td>
+                <td className="text-ink-300 text-xs">{p.contract ? `${fmtShortDate(p.contract.end)} ${p.contract.end.slice(0, 4)}` : '—'}</td>
               </tr>
             ))}
           </tbody>
         </table>
+        {!roster.length && <Empty>Aucun joueur sous contrat. Recrutez depuis la Base joueurs.</Empty>}
       </Panel>
 
-      <Panel title="Messagerie" className="col-span-5" pad={false} right={<span className="link" onClick={() => nav('inbox')}>Tout voir</span>}>
+      <Panel title="Messagerie" pad={false} right={<span className="link" onClick={() => nav('inbox')}>Tout voir →</span>}>
         {unread.length ? unread.map(i => (
-          <div key={i.id} className="px-3 py-2 border-b border-ink-800 hover:bg-ink-850 cursor-pointer" onClick={() => nav('inbox')}>
-            <div className="flex justify-between"><span className="font-medium">{i.title}</span><span className="text-[10px] text-ink-400">{fmtShortDate(i.date)}</span></div>
-            <div className="text-[11px] text-ink-300 truncate">{i.body}</div>
+          <div key={i.id} className="px-4 py-3 border-b border-ink-700/60 hover:bg-ink-800/60 cursor-pointer flex gap-3" onClick={() => nav('inbox')}>
+            <span className="mt-1.5 w-2 h-2 rounded-full bg-accent shrink-0" />
+            <div className="min-w-0 flex-1"><div className="flex justify-between gap-2"><span className="font-semibold text-[13px] truncate">{i.title}</span><span className="text-[11px] text-ink-400 shrink-0">{fmtShortDate(i.date)}</span></div>
+            <div className="text-xs text-ink-300 line-clamp-2 mt-0.5">{i.body}</div></div>
           </div>
         )) : <Empty>Aucun message non lu.</Empty>}
       </Panel>
 
-      <Panel title="Calendrier" className="col-span-5" pad={false}>
-        <table className="data"><tbody>
-          {upcoming.map(t => (
-            <tr key={t.id} className="cursor-pointer" onClick={() => nav('tournament', t.id)}>
-              <td className="text-ink-300 w-20">{fmtShortDate(t.start)}</td>
-              <td>{t.short}</td>
-              <td>{t.lan ? <Pill tone="accent">LAN</Pill> : <Pill>Online</Pill>}</td>
-              <td className="text-right">{t.status === 'live' ? <Pill tone="good">En cours</Pill> : t.kind !== 'regional' ? <span className="text-[11px] text-ink-400">Sur qualification</span> : ''}</td>
-            </tr>
-          ))}
-        </tbody></table>
+      <Panel title="Résultats récents" pad={false}>
+        {recent.length ? recent.map(m => { const s = seriesLine(g, m, org.id); return (
+          <div key={m.id} className="px-4 py-2.5 border-b border-ink-700/60 flex items-center gap-3 cursor-pointer hover:bg-ink-800/60" onClick={() => nav('match', m.id)}>
+            <span className={cx('w-7 h-7 rounded-lg flex items-center justify-center font-bold text-xs shrink-0', s.won ? 'bg-good/15 text-good' : 'bg-bad/15 text-bad')}>{s.won ? 'V' : 'D'}</span>
+            <span className="tnum font-bold w-9 shrink-0">{s.my}-{s.their}</span>
+            <span className="flex-1 min-w-0"><OrgLink org={s.opp} /></span>
+            <span className="text-[11px] text-ink-400 truncate">{g.tournaments[m.tournamentId].short}</span>
+          </div>); }) : <Empty>Pas encore de match joué.</Empty>}
       </Panel>
 
-      <Panel title="Actualités" className="col-span-7" pad={false} right={<span className="link" onClick={() => nav('news')}>Toutes</span>}>
-        {g.news.slice(0, 7).map(n => (
-          <div key={n.id} className="px-3 py-1.5 border-b border-ink-800 flex gap-3">
-            <span className="text-[10px] text-ink-400 w-12 shrink-0 pt-0.5">{fmtShortDate(n.date)}</span>
-            <div className="min-w-0"><div className={cx('truncate', n.important && 'text-accent')}>{n.kind === 'rumor' ? '⚑ ' : ''}{n.title}</div></div>
+      <Panel title="Calendrier" pad={false} right={<span className="link" onClick={() => nav('schedule')}>Voir →</span>}>
+        {upcoming.map(t => (
+          <div key={t.id} className="px-4 py-2.5 border-b border-ink-700/60 flex items-center gap-3 cursor-pointer hover:bg-ink-800/60" onClick={() => nav('tournament', t.id)}>
+            <div className="w-11 text-center rounded-lg bg-ink-800 border border-ink-600 py-1 leading-tight shrink-0"><div className="text-[10px] uppercase text-ink-400">{fmtShortDate(t.start).split(' ')[1]}</div><div className="font-bold">{fmtShortDate(t.start).split(' ')[0]}</div></div>
+            <div className="flex-1 min-w-0"><div className="font-medium truncate">{t.short}</div><div className="text-[11px] text-ink-400">{t.status === 'live' ? 'En cours' : t.kind !== 'regional' ? 'Sur qualification' : 'Inscrit'}</div></div>
+            {t.lan ? <Pill tone="accent">LAN</Pill> : <Pill>Online</Pill>}
+          </div>
+        ))}
+      </Panel>
+
+      <Panel title="Actualités" pad={false} right={<span className="link" onClick={() => nav('news')}>Toutes →</span>}>
+        {g.news.slice(0, 6).map(n => (
+          <div key={n.id} className="px-4 py-2.5 border-b border-ink-700/60">
+            <div className={cx('text-[13px] font-medium line-clamp-2', n.important && 'text-accent')}>{n.kind === 'rumor' && <Pill tone="warn">Rumeur</Pill>} {n.title}</div>
+            <div className="text-[11px] text-ink-400 mt-0.5">{fmtShortDate(n.date)}</div>
           </div>
         ))}
       </Panel>
@@ -164,7 +165,7 @@ function Unemployed() {
   const notify = useStore(s => s.notify);
   const vs = vacancies(g);
   return (
-    <div className="p-3 grid grid-cols-2 gap-3">
+    <div className="grid grid-cols-1 @3xl:grid-cols-2 gap-4">
       <Panel title="Postes vacants" pad={false}>
         {vs.length ? (
           <table className="data"><thead><tr><th>Organisation</th><th>Région</th><th>Réputation</th><th></th></tr></thead><tbody>
@@ -175,14 +176,14 @@ function Unemployed() {
         ) : <Empty>Aucun poste vacant pour le moment. Avancez dans le temps.</Empty>}
       </Panel>
       <Panel title="Votre profil">
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 @4xl:grid-cols-3 gap-4">
           <Stat label="Réputation" value={Math.round(g.manager.reputation)} />
           <Stat label="Expérience" value={`${g.manager.experience} saison(s)`} />
           <Stat label="Trophées" value={g.manager.trophies.length} />
         </div>
         <div className="mt-4 text-xs text-ink-300">Candidatures : {g.manager.applications.map(a => `${g.orgs[a.orgId]?.name} (${a.status === 'pending' ? 'en attente' : a.status === 'accepted' ? 'acceptée' : 'refusée'})`).join(', ') || 'aucune'}</div>
       </Panel>
-      <Panel title="Actualités" className="col-span-2" pad={false}>
+      <Panel title="Actualités" className="@3xl:col-span-2" pad={false}>
         {g.news.slice(0, 12).map(n => <div key={n.id} className="px-3 py-1.5 border-b border-ink-800"><span className="text-ink-400 text-[11px] mr-3">{fmtShortDate(n.date)}</span>{n.title}</div>)}
       </Panel>
     </div>
@@ -193,7 +194,7 @@ export function Inbox() {
   const g = useGame();
   const { nav, notify } = useStore();
   return (
-    <div className="p-3">
+    <div className="">
       <Panel title={`Messagerie (${g.inbox.filter(i => !i.read).length} non lus)`} pad={false} right={<span className="link" onClick={() => act(gs => gs.inbox.forEach(i => (i.read = true)))}>Tout marquer comme lu</span>}>
         {!g.inbox.length && <Empty>Aucun message.</Empty>}
         {g.inbox.map(i => {

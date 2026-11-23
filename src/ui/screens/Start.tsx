@@ -21,21 +21,21 @@ export function StartMenu() {
   if (mode === 'new') return <NewCareer onCancel={() => setMode('menu')} />;
   return (
     <div className="h-full flex">
-      <div className="w-[420px] bg-ink-900 border-r border-ink-700 p-10 flex flex-col">
+      <div className="w-[440px] shrink-0 border-r border-ink-700 p-10 flex flex-col relative overflow-hidden" style={{ background: 'radial-gradient(500px 400px at 0% 0%, #ff8a1f22, transparent 70%), radial-gradient(500px 400px at 100% 100%, #3d8bff1c, transparent 70%), #121620' }}>
         <div className="flex items-center gap-3 mb-10">
-          <div className="w-12 h-12 bg-accent text-black font-black flex items-center justify-center">RLM</div>
-          <div><div className="text-xl font-black tracking-wider">ROCKET LEAGUE</div><div className="text-ink-400 tracking-[0.35em] text-xs">MANAGER</div></div>
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-accent to-[#ff5a1f] text-[#1a0d00] font-black flex items-center justify-center shadow-[0_10px_30px_-10px_#ff8a1f]">RLM</div>
+          <div><div className="text-2xl font-black tracking-wide">ROCKET LEAGUE</div><div className="text-ink-400 tracking-[0.35em] text-xs">MANAGER</div></div>
         </div>
         <p className="text-ink-300 text-sm mb-8 leading-relaxed">Prenez les commandes d'une organisation esport Rocket League. Recrutez, développez, négociez, gagnez — saison après saison.</p>
-        <Btn kind="primary" className="h-10 text-sm justify-center" onClick={() => setMode('new')}>Nouvelle carrière</Btn>
+        <Btn kind="primary" className="h-12 text-[15px]" onClick={() => setMode('new')}>Nouvelle carrière</Btn>
         <div className="mt-auto text-[11px] text-ink-500">Monde fictif. Toutes les organisations, joueurs et marques sont inventés.</div>
       </div>
       <div className="flex-1 p-10 overflow-auto">
-        <h2 className="text-xs uppercase tracking-widest text-ink-400 mb-3">Carrières sauvegardées</h2>
+        <h2 className="text-2xl font-bold mb-1">Carrières sauvegardées</h2><p className="text-ink-400 text-sm mb-5">Reprenez là où vous vous étiez arrêté.</p>
         {!saves.length && <div className="text-ink-400">Aucune sauvegarde pour l'instant.</div>}
         <div className="flex flex-col gap-2 max-w-3xl">
           {saves.map(s => (
-            <div key={s.id} className="bg-ink-900 border border-ink-700 hover:border-ink-500 p-3 flex items-center gap-4">
+            <div key={s.id} className="card p-4 hover:border-ink-500 transition-colors flex items-center gap-4">
               <div className="flex-1 min-w-0">
                 <div className="font-semibold">{s.name}</div>
                 <div className="text-xs text-ink-300">{s.manager} · {s.org} · {fmtDate(s.date)} · {DIFFICULTY[s.difficulty as Difficulty]?.label}</div>
@@ -124,7 +124,7 @@ function NewCareer({ onCancel }: { onCancel: () => void }) {
               <div className="text-[10px] uppercase tracking-wider text-ink-400 mb-2">Difficulté</div>
               <div className="grid grid-cols-4 gap-2">
                 {(Object.keys(DIFFICULTY) as Difficulty[]).map(d => (
-                  <button key={d} onClick={() => setDiff(d)} className={cx('p-3 border text-left cursor-pointer', diff === d ? 'border-accent bg-accent/10' : 'border-ink-600 bg-ink-900 hover:border-ink-400')}>
+                  <button key={d} onClick={() => setDiff(d)} className={cx('p-4 border rounded-xl text-left cursor-pointer transition-colors', diff === d ? 'border-accent bg-accent/10' : 'border-ink-600 bg-ink-900 hover:border-ink-400')}>
                     <div className="font-semibold">{DIFFICULTY[d].label}</div>
                     <div className="text-[11px] text-ink-300 mt-1">{d === 'easy' ? 'Finances généreuses, board patient.' : d === 'normal' ? 'Simulation équilibrée.' : d === 'hard' ? 'Contraintes financières réalistes.' : 'Économie et compétition impitoyables.'}</div>
                   </button>
@@ -138,7 +138,7 @@ function NewCareer({ onCancel }: { onCancel: () => void }) {
             {([['create', 'Créer votre organisation', 'Partez de zéro : une petite structure, un budget limité, trois joueurs inconnus. Remplacez la plus faible équipe de votre région sur le circuit.'],
               ['takeover', 'Reprendre une organisation', 'Choisissez une organisation existante avec son roster, ses finances, ses sponsors et les attentes de son board.'],
               ['unemployed', 'Commencer sans club', 'Manager au chômage : postulez aux postes vacants. Les clubs évaluent votre réputation et votre expérience.']] as const).map(([k, t, d]) => (
-              <button key={k} onClick={() => setMode(k)} className={cx('p-5 border text-left cursor-pointer h-44 flex flex-col', mode === k ? 'border-accent bg-accent/10' : 'border-ink-600 bg-ink-900 hover:border-ink-400')}>
+              <button key={k} onClick={() => setMode(k)} className={cx('p-6 border rounded-2xl text-left cursor-pointer h-48 flex flex-col transition-colors', mode === k ? 'border-accent bg-accent/10' : 'border-ink-600 bg-ink-900 hover:border-ink-400')}>
                 <div className="font-semibold text-base mb-2">{t}</div>
                 <div className="text-xs text-ink-300 leading-relaxed">{d}</div>
               </button>
@@ -158,7 +158,7 @@ function NewCareer({ onCancel }: { onCancel: () => void }) {
               <Field label={`Réputation initiale : ${rep}`}><input type="range" min={5} max={40} value={rep} onChange={e => setRep(+e.target.value)} /></Field>
               <div className="col-span-2">
                 <div className="text-[10px] uppercase tracking-wider text-ink-400 mb-2">Couleurs</div>
-                <div className="flex gap-2 flex-wrap">{ORG_COLORS.map((c, i) => <button key={i} onClick={() => setColors(c)} className={cx('w-9 h-9 border-2 cursor-pointer', colors === c ? 'border-white' : 'border-transparent')} style={{ background: `linear-gradient(135deg, ${c[0]} 50%, ${c[1]} 50%)` }} />)}</div>
+                <div className="flex gap-2 flex-wrap">{ORG_COLORS.map((c, i) => <button key={i} onClick={() => setColors(c)} className={cx('w-10 h-10 rounded-xl border-2 cursor-pointer', colors === c ? 'border-white' : 'border-transparent')} style={{ background: `linear-gradient(135deg, ${c[0]} 50%, ${c[1]} 50%)` }} />)}</div>
               </div>
               <p className="col-span-2 text-xs text-ink-400">Le budget détermine votre marge pour recruter et tenir avant les premiers sponsors. La réputation, elle, évoluera avec vos résultats.</p>
             </div>

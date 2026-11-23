@@ -3,6 +3,7 @@ import { useGame, useStore, act } from '../store';
 import type { Playstyle, Position, Region } from '../../engine/types';
 import { PLAYSTYLES, REGIONS } from '../../engine/types';
 import { Btn, cx, Empty, Field, OrgBadge, Panel, Tabs, AbilityCell } from '../components/ui';
+import { Flag, Avatar } from '../components/ui';
 import { REGION_INFO, NATIONS, NATION_BY_CODE, flag } from '../../engine/data';
 import { applyDatabase, exportDatabase, parseDb, setLevel, type DbFile } from '../../engine/moddb';
 import { ca } from '../../engine/player';
@@ -48,7 +49,7 @@ export function Editor() {
   const sponsors = Object.values(g.sponsors).filter(s => !q || s.name.toLowerCase().includes(q.toLowerCase()));
 
   return (
-    <div className="p-3 flex flex-col gap-3">
+    <div className="flex flex-col gap-4">
       <Panel title="Base de données" right={<span>Les fichiers restent sur votre machine et ne s'appliquent qu'à cette partie</span>}>
         <div className="flex flex-wrap gap-2 items-center">
           <DbFilePicker label="Importer un fichier (.json)" onLoad={(db, fn) => {
@@ -71,7 +72,7 @@ export function Editor() {
           <div className="max-h-[640px] overflow-auto">
             <table className="data"><tbody>
               {tab === 'Organisations' && orgs.map(o => <tr key={o.id} className={cx('cursor-pointer', sel === o.id && 'me')} onClick={() => setSel(o.id)}><td><span className="inline-flex items-center gap-2"><OrgBadge org={o} />{o.name}</span></td><td>{o.tag}</td><td>{o.region}</td><td className="tnum">Rép. {Math.round(o.reputation)}</td></tr>)}
-              {tab === 'Joueurs' && players.map(p => <tr key={p.id} className={cx('cursor-pointer', sel === p.id && 'me')} onClick={() => setSel(p.id)}><td>{flag(p.nationality)} {p.tag}</td><td className="text-ink-300">{p.firstName} {p.lastName}</td><td>{p.orgId ? g.orgs[p.orgId].tag : 'Libre'}</td><td><AbilityCell g={g} p={p} /></td></tr>)}
+              {tab === 'Joueurs' && players.map(p => <tr key={p.id} className={cx('cursor-pointer', sel === p.id && 'me')} onClick={() => setSel(p.id)}><td><Flag code={p.nationality} /> {p.tag}</td><td className="text-ink-300">{p.firstName} {p.lastName}</td><td>{p.orgId ? g.orgs[p.orgId].tag : 'Libre'}</td><td><AbilityCell g={g} p={p} /></td></tr>)}
               {tab === 'Sponsors' && sponsors.map(s => <tr key={s.id} className={cx('cursor-pointer', sel === s.id && 'me')} onClick={() => setSel(s.id)}><td>{s.name}</td><td className="text-ink-300">{s.industry}</td></tr>)}
             </tbody></table>
             {tab === 'Joueurs' && players.length === 150 && <div className="p-2 text-[11px] text-ink-400">150 premiers résultats — affinez la recherche.</div>}
@@ -94,7 +95,7 @@ function OrgForm({ id }: { id: string }) {
     <div className="flex flex-col gap-3">
       <Field label="Nom"><input value={f.name} onChange={e => setF({ ...f, name: e.target.value })} /></Field>
       <Field label="Tag (2-4)"><input value={f.tag} maxLength={4} onChange={e => setF({ ...f, tag: e.target.value.toUpperCase() })} /></Field>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 @3xl:grid-cols-2 gap-4">
         <Field label="Couleur principale"><input type="color" value={f.c1} onChange={e => setF({ ...f, c1: e.target.value })} className="h-8 w-full" /></Field>
         <Field label="Couleur de fond"><input type="color" value={f.c2} onChange={e => setF({ ...f, c2: e.target.value })} className="h-8 w-full" /></Field>
       </div>
@@ -132,12 +133,12 @@ function PlayerForm({ id }: { id: string }) {
   };
   return (
     <div className="flex flex-col gap-3">
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 @4xl:grid-cols-3 gap-4">
         <Field label="Pseudo"><input value={f.tag} onChange={e => setF({ ...f, tag: e.target.value })} /></Field>
         <Field label="Prénom"><input value={f.firstName} onChange={e => setF({ ...f, firstName: e.target.value })} /></Field>
         <Field label="Nom"><input value={f.lastName} onChange={e => setF({ ...f, lastName: e.target.value })} /></Field>
       </div>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 @3xl:grid-cols-2 gap-4">
         <Field label="Nationalité"><select value={f.nationality} onChange={e => setF({ ...f, nationality: e.target.value })}>{nations.map(n => <option key={n.code} value={n.code}>{n.flag} {n.name}</option>)}</select></Field>
         <Field label="Année de naissance"><input type="number" value={f.birthYear} onChange={e => setF({ ...f, birthYear: +e.target.value })} /></Field>
         <Field label={`Niveau : ${f.level}`}><input type="range" min={30} max={97} value={f.level} onChange={e => setF({ ...f, level: +e.target.value })} /></Field>

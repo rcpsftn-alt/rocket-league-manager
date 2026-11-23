@@ -3,6 +3,7 @@ import { useGame, useStore, act } from '../store';
 import type { Player, Region } from '../../engine/types';
 import { REGIONS, PLAYSTYLES } from '../../engine/types';
 import { AbilityCell, Btn, cx, Empty, Field, OrgLink, Panel, Pill, PlayerLink, PotCell, Stat, Tabs, useSort } from '../components/ui';
+import { Kpis } from '../components/ui';
 import { age, askingFee, avgRating, ca, fuzzy, knowledge, potentialStars } from '../../engine/player';
 import { REGION_INFO } from '../../engine/data';
 import { fmtShortDate, money } from '../../engine/util';
@@ -86,7 +87,7 @@ export function Database() {
     return true;
   }), [g, q, region, status, minAge, maxAge, minCa, minPot, pos, style, maxVal, useStore.getState().v]);
   return (
-    <div className="p-3 flex flex-col gap-3">
+    <div className="flex flex-col gap-4">
       <Panel title="Recherche avancée">
         <div className="grid grid-cols-10 gap-3 items-end">
           <Field label="Nom / tag"><input value={q} onChange={e => setQ(e.target.value)} placeholder="Rechercher…" /></Field>
@@ -117,15 +118,13 @@ export function Transfers() {
   const soldSeason = g.transfersLog.filter(t => t.from === org.name && t.date.startsWith(String(g.season))).reduce((a, t) => a + t.fee, 0);
   const st = (s: string) => s === 'pending' ? <Pill tone="info">En attente</Pill> : s === 'accepted' ? <Pill tone="good">Acceptée</Pill> : s === 'completed' ? <Pill tone="good">Finalisé</Pill> : s === 'rejected' ? <Pill tone="bad">Refusée</Pill> : <Pill>Expirée</Pill>;
   return (
-    <div className="p-3 flex flex-col gap-3">
-      <Panel pad={false}>
-        <div className="grid grid-cols-4 divide-x divide-ink-700">
-          <div className="p-3"><Stat label="Fenêtre" value={<span className={transferWindowOpen(g) ? 'text-good' : 'text-ink-300'}>{transferWindowOpen(g) ? 'Ouverte' : 'Fermée'}</span>} sub={windowLabel(g)} /></div>
-          <div className="p-3"><Stat label="Budget disponible" value={money(org.balance)} /></div>
-          <div className="p-3"><Stat label="Dépenses saison" value={money(spentSeason)} /></div>
-          <div className="p-3"><Stat label="Ventes saison" value={money(soldSeason)} /></div>
-        </div>
-      </Panel>
+    <div className="flex flex-col gap-4">
+      <Kpis>
+          <div className=""><Stat label="Fenêtre" value={<span className={transferWindowOpen(g) ? 'text-good' : 'text-ink-300'}>{transferWindowOpen(g) ? 'Ouverte' : 'Fermée'}</span>} sub={windowLabel(g)} /></div>
+          <div className=""><Stat label="Budget disponible" value={money(org.balance)} /></div>
+          <div className=""><Stat label="Dépenses saison" value={money(spentSeason)} /></div>
+          <div className=""><Stat label="Ventes saison" value={money(soldSeason)} /></div>
+        </Kpis>
       <Panel pad={false}>
         <Tabs tabs={['Offres reçues', 'Mes offres', 'Shortlist', 'Journal des transferts'] as const} value={tab} onChange={setTab} />
         {tab === 'Offres reçues' && (incoming.length ? (
@@ -158,8 +157,8 @@ export function Scouting() {
   const knownByRegion = REGIONS.map(r => { const ps = Object.values(g.players).filter(p => p.region === r && !p.retired); return { r, pct: ps.length ? ps.reduce((a, p) => a + knowledge(g, p), 0) / ps.length : 0 }; });
   const prospects = Object.values(g.players).filter(p => !p.retired && age(g, p) <= 19 && knowledge(g, p) >= 45 && (potentialStars(g, p) ?? 0) >= 3.5 && p.orgId !== org.id);
   return (
-    <div className="p-3 grid grid-cols-3 gap-3">
-      <Panel title="Recruteurs & analystes" className="col-span-1" pad={false}>
+    <div className="grid grid-cols-1 @4xl:grid-cols-3 gap-4">
+      <Panel title="Recruteurs & analystes" className="@4xl:col-span-1" pad={false}>
         {!scouts.length && <Empty>Aucun recruteur. Engagez-en un depuis l'écran Staff pour découvrir les attributs et le potentiel des joueurs.</Empty>}
         {scouts.map(s => (
           <div key={s.id} className="px-3 py-2 border-b border-ink-800">
@@ -181,7 +180,7 @@ export function Scouting() {
       <Panel title="Rapports" pad={false}>
         <div className="p-3 text-xs text-ink-300">Joueurs connus à plus de 90% : <b className="text-white">{Object.values(g.players).filter(p => knowledge(g, p) >= 90 && p.orgId !== org.id).length}</b><br />Pépites identifiées (≤19 ans, ★3.5+) : <b className="text-accent">{prospects.length}</b></div>
       </Panel>
-      <Panel title="Pépites repérées" className="col-span-3" pad={false}><PlayerTable rows={prospects} extra={p => <Btn small onClick={() => nav('player', p.id)}>Fiche</Btn>} /></Panel>
+      <Panel title="Pépites repérées" className="@4xl:col-span-3" pad={false}><PlayerTable rows={prospects} extra={p => <Btn small onClick={() => nav('player', p.id)}>Fiche</Btn>} /></Panel>
     </div>
   );
 }

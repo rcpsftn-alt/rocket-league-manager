@@ -4,6 +4,8 @@ import { useGame, useStore, act } from '../store';
 import type { AttrKey, ContractTerms, GameState, Player, SquadRole } from '../../engine/types';
 import { IQ_KEYS, MECH_KEYS, MENTAL_KEYS, INDIVIDUAL_FOCUSES } from '../../engine/types';
 import { AbilityCell, AttrValue, Bar, Btn, CondDot, cx, Empty, Field, Modal, moraleLabel, moraleTone, OrgBadge, OrgLink, Panel, Pill, PlayerLink, PotCell, Stat, useSort, Stars } from '../components/ui';
+import { Flag, Avatar } from '../components/ui';
+import { Kpis } from '../components/ui';
 import { ATTR_LABEL, age, askingFee, avgRating, ca, knowledge, potentialStars, recentForm, displayName, salaryDemand } from '../../engine/player';
 import { orgPlayers, starters, assignPositions } from '../../engine/roster';
 import { flag, NATION_BY_CODE, REGION_INFO } from '../../engine/data';
@@ -33,16 +35,14 @@ export function Squad() {
   const chem = teamChemistry(g, org, starters(g, org.id).map(p => p.id));
   const wage = ps.reduce((a, p) => a + (p.contract?.salary ?? 0), 0);
   return (
-    <div className="p-3 flex flex-col gap-3">
-      <Panel pad={false}>
-        <div className="grid grid-cols-5 divide-x divide-ink-700">
-          <div className="p-3"><Stat label="Joueurs" value={ps.length} sub={`${starters(g, org.id).length}/3 titulaires`} /></div>
-          <div className="p-3"><Stat label="Masse salariale" value={`${money(wage)}/mois`} /></div>
-          <div className="p-3"><Stat label="Cohésion titulaires" value={`${Math.round(chem)}%`} tone={chem > 60 ? 'good' : chem < 35 ? 'bad' : undefined} /></div>
-          <div className="p-3"><Stat label="Niveau moyen" value={(starters(g, org.id).reduce((a, p) => a + ca(p), 0) / Math.max(1, starters(g, org.id).length)).toFixed(1)} /></div>
-          <div className="p-3"><Stat label="Valeur effectif" value={money(ps.reduce((a, p) => a + p.value, 0))} /></div>
-        </div>
-      </Panel>
+    <div className="flex flex-col gap-4">
+      <Kpis>
+          <div className=""><Stat label="Joueurs" value={ps.length} sub={`${starters(g, org.id).length}/3 titulaires`} /></div>
+          <div className=""><Stat label="Masse salariale" value={`${money(wage)}/mois`} /></div>
+          <div className=""><Stat label="Cohésion titulaires" value={`${Math.round(chem)}%`} tone={chem > 60 ? 'good' : chem < 35 ? 'bad' : undefined} /></div>
+          <div className=""><Stat label="Niveau moyen" value={(starters(g, org.id).reduce((a, p) => a + ca(p), 0) / Math.max(1, starters(g, org.id).length)).toFixed(1)} /></div>
+          <div className=""><Stat label="Valeur effectif" value={money(ps.reduce((a, p) => a + p.value, 0))} /></div>
+        </Kpis>
       {starters(g, org.id).length < 3 && <div className="bg-bad/10 border border-bad/40 px-3 py-2 text-sm text-bad">Moins de 3 titulaires : des remplaçants (ou des stand-ins non rémunérés de niveau inconnu) joueront à leur place. Recrutez !</div>}
       <Panel title="Effectif" pad={false}>
         <table className="data">
@@ -131,18 +131,18 @@ export function PlayerProfile({ id }: { id: string }) {
   const ratings = p.recentRatings.map((r, i) => ({ i: i + 1, r }));
 
   return (
-    <div className="p-3 flex flex-col gap-3">
-      <div className="bg-ink-900 border border-ink-700 flex items-stretch">
+    <div className="flex flex-col gap-4">
+      <div className="card flex items-stretch overflow-hidden">
         <div className="w-1.5" style={{ background: org?.colors[0] ?? '#3d434d' }} />
-        <div className="p-4 flex-1 flex items-center gap-5">
-          <div className="w-16 h-16 bg-ink-800 border border-ink-600 flex items-center justify-center text-3xl">{flag(p.nationality)}</div>
+        <div className="p-5 flex-1 flex items-center gap-5 flex-wrap">
+          <div className="relative"><Avatar p={p} org={org} size={72} /><span className="absolute -bottom-1 -right-1"><Flag code={p.nationality} size={16} /></span></div>
           <div className="min-w-0">
             <div className="text-2xl font-bold leading-tight">{p.tag}{p.retired && <span className="ml-2 text-sm text-ink-400">(retraité)</span>}</div>
             <div className="text-ink-300">{p.firstName || p.lastName ? `${p.firstName} ${p.lastName} · ` : ''}{age(g, p)} ans · {NATION_BY_CODE[p.nationality]?.name} · {p.archetype}</div>
             <div className="mt-1 flex items-center gap-2 text-xs">{org ? <OrgLink org={org} /> : <Pill tone="info">Agent libre</Pill>}{p.squadRole && <Pill>{ROLE_LABEL[p.squadRole]}</Pill>}<Pill>{p.position}e homme</Pill><Pill>{p.playstyle}</Pill></div>
           </div>
           <div className="flex-1" />
-          <div className="grid grid-cols-4 gap-6 text-right">
+          <div className="grid grid-cols-2 @3xl:grid-cols-4 gap-6 text-right">
             <Stat label="Niveau" value={<AbilityCell g={g} p={p} />} sub={<Stars n={Math.max(0.5, Math.round((ca(p) - 40) / 11.5 * 2) / 2)} />} />
             <Stat label="Potentiel" value={<PotCell g={g} p={p} />} sub={k < 45 ? 'Scouting requis' : `Connaissance ${Math.round(k)}%`} />
             <Stat label="Valeur" value={money(p.value)} sub={p.contract?.buyout ? `Clause ${money(p.contract.buyout)}` : 'Pas de clause'} />
@@ -160,7 +160,7 @@ export function PlayerProfile({ id }: { id: string }) {
         {org && <Btn kind="ghost" onClick={() => nav('org', org.id)}>Voir {org.tag}</Btn>}
       </div>
 
-      <div className="grid grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 @3xl:grid-cols-2 @6xl:grid-cols-4 gap-4">
         <AttrGroup g={g} p={p} title="Mécanique" keys={MECH_KEYS} />
         <AttrGroup g={g} p={p} title="Intelligence de jeu" keys={IQ_KEYS} />
         <AttrGroup g={g} p={p} title="Mental" keys={MENTAL_KEYS} />
@@ -183,7 +183,7 @@ export function PlayerProfile({ id }: { id: string }) {
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 @4xl:grid-cols-3 gap-4">
         <Panel title="Statistiques" pad={false}>
           <table className="data">
             <thead><tr><th></th><th>MJ</th><th>V%</th><th>Buts</th><th>PD</th><th>Arrêts</th><th>Tirs</th><th>Démos</th><th>MVP</th><th>Note</th></tr></thead>
@@ -346,15 +346,15 @@ export function OrgProfile({ id }: { id: string }) {
   const staff = staffOf(g, org.id);
   const hist = (g.eloHistory[org.id] ?? []).map(h => ({ d: h.d.slice(0, 7), e: h.e }));
   return (
-    <div className="p-3 flex flex-col gap-3">
-      <div className="bg-ink-900 border border-ink-700 p-4 flex items-center gap-5" style={{ borderLeft: `6px solid ${org.colors[0]}` }}>
+    <div className="flex flex-col gap-4">
+      <div className="card p-5 flex items-center gap-5 flex-wrap" style={{ borderLeft: `4px solid ${org.colors[0]}` }}>
         <OrgBadge org={org} size={64} />
         <div>
           <div className="text-2xl font-bold">{org.name} {org.disbanded && <span className="text-bad text-sm">(dissoute)</span>}</div>
           <div className="text-ink-300">{org.hq}, {NATION_BY_CODE[org.country]?.name} · {REGION_INFO[org.region].name} · fondée en {org.founded} · {org.philosophy}</div>
         </div>
         <div className="flex-1" />
-        <div className="grid grid-cols-5 gap-6 text-right">
+        <div className="grid grid-cols-3 @3xl:grid-cols-5 gap-6 text-right">
           <Stat label="Rang régional" value={`#${regionRank(g, org.id)}`} />
           <Stat label="Mondial" value={`#${worldRank(g, org.id)}`} sub={`Elo ${org.elo}`} />
           <Stat label="Réputation" value={Math.round(org.reputation)} />
@@ -362,8 +362,8 @@ export function OrgProfile({ id }: { id: string }) {
           <Stat label="Trophées" value={org.trophies.length} />
         </div>
       </div>
-      <div className="grid grid-cols-3 gap-3">
-        <Panel title="Roster" pad={false} className="col-span-2">
+      <div className="grid grid-cols-1 @4xl:grid-cols-3 gap-4">
+        <Panel title="Roster" pad={false} className="@4xl:col-span-2">
           <table className="data"><thead><tr><th>Joueur</th><th>Statut</th><th>Âge</th><th>Niveau</th><th>Pot.</th><th>Note saison</th><th>Valeur</th><th>Contrat</th></tr></thead><tbody>
             {ps.sort((a, b) => (a.squadRole === 'starter' ? 0 : 1) - (b.squadRole === 'starter' ? 0 : 1)).map(p => (
               <tr key={p.id}><td><PlayerLink p={p} /></td><td className="text-ink-300">{p.squadRole ? ROLE_LABEL[p.squadRole] : ''}</td><td className="tnum">{age(g, p)}</td><td><AbilityCell g={g} p={p} /></td><td><PotCell g={g} p={p} /></td><td className="tnum">{avgRating(p.season) ? avgRating(p.season).toFixed(2) : '—'}</td><td className="tnum">{money(p.value)}</td><td className="text-[11px] text-ink-300">{p.contract?.end.slice(0, 4)}</td></tr>
@@ -371,9 +371,9 @@ export function OrgProfile({ id }: { id: string }) {
           </tbody></table>
         </Panel>
         <Panel title="Staff" pad={false}>
-          {staff.length ? staff.map(s => <div key={s.id} className="px-3 py-1.5 border-b border-ink-800 flex justify-between"><span>{flag(s.nationality)} {s.name}</span><span className="text-ink-300 text-xs">{s.role}</span></div>) : <Empty>Aucun staff.</Empty>}
+          {staff.length ? staff.map(s => <div key={s.id} className="px-3 py-1.5 border-b border-ink-800 flex justify-between"><span><Flag code={s.nationality} /> {s.name}</span><span className="text-ink-300 text-xs">{s.role}</span></div>) : <Empty>Aucun staff.</Empty>}
         </Panel>
-        <Panel title="Évolution Elo" className="col-span-2">
+        <Panel title="Évolution Elo" className="@4xl:col-span-2">
           <div className="h-40">{hist.length > 1 ? <ResponsiveContainer><LineChart data={hist}><XAxis dataKey="d" tick={{ fill: '#8a919c', fontSize: 10 }} /><YAxis domain={['auto', 'auto']} width={36} tick={{ fill: '#8a919c', fontSize: 10 }} /><Tooltip contentStyle={{ background: '#15181c', border: '1px solid #2e333b', fontSize: 11 }} /><Line dataKey="e" stroke={org.colors[0]} dot={false} isAnimationActive={false} /></LineChart></ResponsiveContainer> : <Empty>Données insuffisantes.</Empty>}</div>
         </Panel>
         <Panel title="Palmarès" pad={false}>
