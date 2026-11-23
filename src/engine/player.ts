@@ -27,7 +27,7 @@ export const mechScore = (p: Player) => avg(MECH_KEYS.map(k => p.attrs[k]));
 export const iqScore = (p: Player) => avg(IQ_KEYS.map(k => p.attrs[k]));
 export const mentalScore = (p: Player) => avg(MENTAL_KEYS.map(k => p.attrs[k]));
 export const age = (g: GameState, p: Player) => ageOn(p.birth, g.date);
-export const displayName = (p: Player) => `${p.firstName} "${p.tag}" ${p.lastName}`;
+export const displayName = (p: Player) => (p.firstName || p.lastName ? `${p.firstName} "${p.tag}" ${p.lastName}`.trim() : p.tag);
 
 export function emptyStats(): StatLine { return { games: 0, wins: 0, goals: 0, assists: 0, saves: 0, shots: 0, demos: 0, mvps: 0, ratingSum: 0, score: 0 }; }
 

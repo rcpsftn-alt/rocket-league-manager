@@ -138,7 +138,7 @@ export function PlayerProfile({ id }: { id: string }) {
           <div className="w-16 h-16 bg-ink-800 border border-ink-600 flex items-center justify-center text-3xl">{flag(p.nationality)}</div>
           <div className="min-w-0">
             <div className="text-2xl font-bold leading-tight">{p.tag}{p.retired && <span className="ml-2 text-sm text-ink-400">(retraité)</span>}</div>
-            <div className="text-ink-300">{p.firstName} {p.lastName} · {age(g, p)} ans · {NATION_BY_CODE[p.nationality]?.name} · {p.archetype}</div>
+            <div className="text-ink-300">{p.firstName || p.lastName ? `${p.firstName} ${p.lastName} · ` : ''}{age(g, p)} ans · {NATION_BY_CODE[p.nationality]?.name} · {p.archetype}</div>
             <div className="mt-1 flex items-center gap-2 text-xs">{org ? <OrgLink org={org} /> : <Pill tone="info">Agent libre</Pill>}{p.squadRole && <Pill>{ROLE_LABEL[p.squadRole]}</Pill>}<Pill>{p.position}e homme</Pill><Pill>{p.playstyle}</Pill></div>
           </div>
           <div className="flex-1" />

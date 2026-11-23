@@ -12,6 +12,7 @@ import { touchPlayers } from './roster';
 import { DEFAULT_TACTIC } from './matchsim';
 import { createSeasonCalendar } from './competitions';
 import { addNews } from './news';
+import { applyDatabase, type DbFile } from './moddb';
 
 export { DIFFICULTY };
 
@@ -102,6 +103,7 @@ export interface NewCareerOpts {
   create?: { name: string; tag: string; region: Region; country: string; hq: string; colors: [string, string]; budget: number; reputation: number; ambition: 'Survivre' | 'Progresser' | 'Dominer' };
   takeoverOrgId?: string;
   seed?: number;
+  db?: DbFile;
 }
 
 /** Generates the persistent world (orgs, players, staff, sponsors, calendar). */
@@ -173,6 +175,7 @@ export function generateWorld(seed: number, season: number, difficulty: Difficul
 export function startCareer(o: NewCareerOpts): GameState {
   const seed = o.seed ?? Math.floor(Math.random() * 2 ** 31);
   const g = generateWorld(seed, o.season, o.difficulty);
+  if (o.db) applyDatabase(g, o.db);
   g.saveId = `save_${Date.now().toString(36)}`;
   g.saveName = o.saveName || o.managerName;
   g.manager.name = o.managerName;

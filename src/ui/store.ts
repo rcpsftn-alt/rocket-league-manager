@@ -6,7 +6,7 @@ import { rngGet, rngSet } from '../engine/util';
 export type Screen =
   | 'dashboard' | 'inbox' | 'squad' | 'player' | 'org' | 'database' | 'transfers' | 'scouting' | 'tactics' | 'training'
   | 'staff' | 'competitions' | 'tournament' | 'schedule' | 'match' | 'finances' | 'sponsors' | 'social' | 'news'
-  | 'club' | 'rankings' | 'history' | 'settings';
+  | 'club' | 'rankings' | 'history' | 'settings' | 'editor';
 
 interface Route { screen: Screen; id?: string }
 

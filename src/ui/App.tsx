@@ -13,6 +13,7 @@ import { Competitions, TournamentView, Schedule, Rankings, History } from './scr
 import { MatchScreen } from './screens/Match';
 import { Finances, Sponsors, Social, Club } from './screens/Business';
 import { News, Settings } from './screens/News';
+import { Editor } from './screens/Editor';
 import { userNextMatch } from '../engine/competitions';
 
 const NAV: { group: string; items: [Screen, string][] }[] = [
@@ -20,7 +21,7 @@ const NAV: { group: string; items: [Screen, string][] }[] = [
   { group: 'Équipe', items: [['squad', 'Effectif'], ['tactics', 'Tactique'], ['training', 'Entraînement'], ['staff', 'Staff']] },
   { group: 'Recrutement', items: [['database', 'Base joueurs'], ['transfers', 'Transferts'], ['scouting', 'Scouting']] },
   { group: 'Compétition', items: [['schedule', 'Calendrier'], ['competitions', 'Compétitions'], ['rankings', 'Classements'], ['history', 'Historique']] },
-  { group: 'Organisation', items: [['finances', 'Finances'], ['sponsors', 'Sponsors'], ['social', 'Réseaux sociaux'], ['club', 'Club & board'], ['settings', 'Paramètres']] },
+  { group: 'Organisation', items: [['finances', 'Finances'], ['sponsors', 'Sponsors'], ['social', 'Réseaux sociaux'], ['club', 'Club & board'], ['editor', 'Éditeur'], ['settings', 'Paramètres']] },
 ];
 const NEED_ORG: Screen[] = ['squad', 'tactics', 'training', 'staff', 'finances', 'sponsors', 'social', 'transfers'];
 
@@ -145,6 +146,7 @@ function Router() {
     case 'history': return <History />;
     case 'news': return <News />;
     case 'settings': return <Settings />;
+    case 'editor': return <Editor />;
   }
 }
 

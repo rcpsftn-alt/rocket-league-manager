@@ -6,6 +6,8 @@ import { generateWorld, startCareer } from '../../engine/world';
 import { deleteSave, listSaves, loadGame, type SaveMeta } from '../../engine/save';
 import { useStore, persist } from '../store';
 import { Btn, cx, Field, OrgBadge, Panel, Pill } from '../components/ui';
+import { DbFilePicker } from './Editor';
+import { applyDatabase, type DbFile } from '../../engine/moddb';
 import { ca } from '../../engine/player';
 import { starters } from '../../engine/roster';
 import { fmtDate, money } from '../../engine/util';
@@ -66,6 +68,7 @@ function NewCareer({ onCancel }: { onCancel: () => void }) {
   const [season, setSeason] = useState(2026);
   const [mode, setMode] = useState<'create' | 'takeover' | 'unemployed'>('create');
   const [seed] = useState(() => Math.floor(Math.random() * 2 ** 31));
+  const [db, setDb] = useState<{ db: DbFile; file: string } | null>(null);
   // create org
   const [name, setName] = useState('');
   const [tag, setTag] = useState('');
@@ -79,7 +82,7 @@ function NewCareer({ onCancel }: { onCancel: () => void }) {
   // takeover
   const [pickOrg, setPickOrg] = useState<string | null>(null);
   const [regionFilter, setRegionFilter] = useState<Region>('EU');
-  const preview = useMemo(() => (mode === 'takeover' && step === 3 ? generateWorld(seed, season, diff) : null), [mode, step, seed, season, diff]);
+  const preview = useMemo(() => { if (!(mode === 'takeover' && step === 3)) return null; const w = generateWorld(seed, season, diff); if (db) applyDatabase(w, db.db); return w; }, [mode, step, seed, season, diff, db]);
 
   const nations = REGIONS.flatMap(r => NATIONS[r]);
   const canNext = step === 1 ? manager.trim().length >= 2 : step === 2 ? true : mode === 'create' ? name.trim().length >= 3 && tag.trim().length >= 2 : mode === 'takeover' ? !!pickOrg : true;
@@ -88,7 +91,7 @@ function NewCareer({ onCancel }: { onCancel: () => void }) {
     const g = startCareer({
       saveName: mode === 'create' ? name : manager, managerName: manager.trim(), managerNationality: nat, difficulty: diff, season, mode, seed,
       create: mode === 'create' ? { name: name.trim(), tag: tag.trim(), region, country, hq, colors, budget, reputation: rep, ambition } : undefined,
-      takeoverOrgId: pickOrg ?? undefined,
+      takeoverOrgId: pickOrg ?? undefined, db: db?.db,
     });
     // initial scouting knowledge: famous players are well known, locals are better known
     const home = g.userOrgId ? g.orgs[g.userOrgId].region : null;
@@ -111,7 +114,12 @@ function NewCareer({ onCancel }: { onCancel: () => void }) {
             <Field label="Nom du manager"><input autoFocus value={manager} onChange={e => setManager(e.target.value)} placeholder="Votre nom" /></Field>
             <Field label="Nationalité"><select value={nat} onChange={e => setNat(e.target.value)}>{nations.map(n => <option key={n.code} value={n.code}>{n.flag} {n.name}</option>)}</select></Field>
             <Field label="Saison de départ"><select value={season} onChange={e => setSeason(+e.target.value)}>{[2025, 2026, 2027, 2028].map(y => <option key={y}>{y}</option>)}</select></Field>
-            <div />
+            <Field label="Base de données">
+              <div className="flex items-center gap-2">
+                <DbFilePicker label={db ? 'Changer de fichier' : 'Importer un fichier (.json)'} onLoad={(d, file) => setDb({ db: d, file })} />
+                {db ? <span className="text-xs text-good truncate" title={db.db.note}>{db.db.name ?? db.file} <span className="link text-ink-400" onClick={() => setDb(null)}>✕</span></span> : <span className="text-xs text-ink-400">Monde fictif</span>}
+              </div>
+            </Field>
             <div className="col-span-2">
               <div className="text-[10px] uppercase tracking-wider text-ink-400 mb-2">Difficulté</div>
               <div className="grid grid-cols-4 gap-2">
