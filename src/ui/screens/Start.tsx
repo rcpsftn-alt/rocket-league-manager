@@ -116,7 +116,7 @@ function NewCareer({ onCancel }: { onCancel: () => void }) {
             <Field label="Saison de départ"><select value={season} onChange={e => setSeason(+e.target.value)}>{[2025, 2026, 2027, 2028].map(y => <option key={y}>{y}</option>)}</select></Field>
             <Field label="Base de données">
               <div className="flex items-center gap-2">
-                <DbFilePicker label={db ? 'Changer de fichier' : 'Importer un fichier (.json)'} onLoad={(d, file) => setDb({ db: d, file })} />
+                <DbFilePicker label={db ? 'Changer de fichier' : 'Importer CSV / JSON'} onLoad={(d, file) => setDb({ db: d, file })} />
                 {db ? <span className="text-xs text-good truncate" title={db.db.note}>{db.db.name ?? db.file} <span className="link text-ink-400" onClick={() => setDb(null)}>✕</span></span> : <span className="text-xs text-ink-400">Monde fictif</span>}
               </div>
             </Field>

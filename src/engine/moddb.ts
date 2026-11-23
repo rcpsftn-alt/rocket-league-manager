@@ -14,6 +14,7 @@ export interface DbOrg {
   from?: string;                 // current name to match
   region?: Region;               // or: assign to the N-th strongest org of this region (file order)
   name: string; tag?: string; colors?: [string, string]; country?: string; hq?: string; reputation?: number;
+  level?: number;                // target level for the org's remaining (non-imported) players
 }
 export interface DbPlayer {
   id?: string; from?: string;    // current tag to match; otherwise a new player is created
@@ -54,6 +55,9 @@ export function applyDatabase(g: GameState, db: DbFile): DbReport {
   for (const o of db.orgs ?? []) {
     let org: Org | undefined;
     if (o.from) org = Object.values(g.orgs).find(x => !x.disbanded && x.name.toLowerCase() === o.from!.toLowerCase());
+    // an org that already carries this name is updated in place (never duplicated)
+    if (!org) org = Object.values(g.orgs).find(x => !x.disbanded && x.name.toLowerCase() === o.name.toLowerCase());
+    if (org?.isUser) { usedSlots.add(org.id); rep.warnings.push(`${o.name} : c'est votre club, il n'est pas modifié`); continue; }
     if (!org && o.region && REGIONS.includes(o.region)) {
       org = Object.values(g.orgs).filter(x => x.region === o.region && !x.disbanded && !x.isUser && !usedSlots.has(x.id)).sort((a, b) => b.reputation - a.reputation)[0];
     }
@@ -67,6 +71,8 @@ export function applyDatabase(g: GameState, db: DbFile): DbReport {
     if (o.reputation != null) org.reputation = clamp(o.reputation, 1, 99);
     rep.orgs++;
   }
+  const orgLevels = new Map<string, number>();
+  for (const o of db.orgs ?? []) { const org = Object.values(g.orgs).find(x => !x.disbanded && x.name === o.name); if (org && o.level != null) orgLevels.set(org.id, o.level); }
   // ---------------- players
   const tagTaken = (tag: string, except?: Player) => Object.values(g.players).find(p => p !== except && !p.retired && p.tag.toLowerCase() === tag.toLowerCase());
   const touched = new Set<string>();
@@ -98,6 +104,7 @@ export function applyDatabase(g: GameState, db: DbFile): DbReport {
     if (d.level != null) p.reputation = clamp((d.level - 55) * 2.6, 1, 99), p.popularity = clamp(p.reputation * 0.95, 1, 99);
     if (target !== undefined) {
       if (target === null) { if (p.orgId && !g.orgs[p.orgId].isUser) { leaveOrg(g, p); p.contract = null; } }
+      else if (p.orgId && g.orgs[p.orgId]?.isUser) rep.warnings.push(`${p.tag} est dans votre club : il n'est pas transféré`);
       else if (p.orgId !== target.id) {
         const role = d.role ?? 'starter';
         if (role === 'starter') {
@@ -113,6 +120,14 @@ export function applyDatabase(g: GameState, db: DbFile): DbReport {
     touched.add(p.id);
     if (g.userOrgId && p.orgId !== g.userOrgId) g.scout[p.id] = Math.max(g.scout[p.id] ?? 0, clamp(p.reputation, 20, 90));
     rep.players++;
+  }
+  // calibrate the fictional players left in imported orgs to the org's tier
+  for (const [orgId, lvl] of orgLevels) {
+    if (g.orgs[orgId].isUser) continue;
+    orgPlayers(g, orgId).filter(p => !touched.has(p.id)).forEach((p, i) => {
+      setLevel(p, clamp(lvl - (p.squadRole === 'starter' ? 0 : 4) - (i % 3) * 0.8, 30, 95));
+      p.value = marketValue(g, p);
+    });
   }
   for (const o of Object.values(g.orgs)) {
     if (o.disbanded) continue;

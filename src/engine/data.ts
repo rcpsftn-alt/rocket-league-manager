@@ -54,6 +54,18 @@ export const NATIONS: Record<Region, Nation[]> = {
 
 export const NATION_BY_CODE: Record<string, Nation & { region: Region }> = {};
 for (const r of Object.keys(NATIONS) as Region[]) for (const n of NATIONS[r]) NATION_BY_CODE[n.code] = { ...n, region: r };
+// Extra nationalities (not used for generation, only for imported players)
+const EXTRA: [string, string, Region][] = [
+  ['PT', 'Portugal', 'EU'], ['IT', 'Italie', 'EU'], ['NO', 'Norvège', 'EU'], ['FI', 'Finlande', 'EU'], ['CH', 'Suisse', 'EU'], ['AT', 'Autriche', 'EU'], ['CZ', 'Tchéquie', 'EU'],
+  ['IE', 'Irlande', 'EU'], ['SK', 'Slovaquie', 'EU'], ['HU', 'Hongrie', 'EU'], ['RO', 'Roumanie', 'EU'], ['LT', 'Lituanie', 'EU'], ['LV', 'Lettonie', 'EU'], ['EE', 'Estonie', 'EU'],
+  ['UA', 'Ukraine', 'EU'], ['TR', 'Turquie', 'EU'], ['GR', 'Grèce', 'EU'], ['HR', 'Croatie', 'EU'], ['RS', 'Serbie', 'EU'], ['SI', 'Slovénie', 'EU'], ['BG', 'Bulgarie', 'EU'],
+  ['IS', 'Islande', 'EU'], ['LU', 'Luxembourg', 'EU'], ['KW', 'Koweït', 'MENA'], ['QA', 'Qatar', 'MENA'], ['BH', 'Bahreïn', 'MENA'], ['OM', 'Oman', 'MENA'], ['JO', 'Jordanie', 'MENA'],
+  ['DZ', 'Algérie', 'MENA'], ['TN', 'Tunisie', 'MENA'], ['LB', 'Liban', 'MENA'], ['IQ', 'Irak', 'MENA'], ['IL', 'Israël', 'EU'], ['PE', 'Pérou', 'SAM'], ['CO', 'Colombie', 'SAM'], ['UY', 'Uruguay', 'SAM'],
+  ['PY', 'Paraguay', 'SAM'], ['VE', 'Venezuela', 'SAM'], ['EC', 'Équateur', 'SAM'], ['BO', 'Bolivie', 'SAM'], ['CR', 'Costa Rica', 'NA'], ['PR', 'Porto Rico', 'NA'], ['GT', 'Guatemala', 'NA'],
+  ['PH', 'Philippines', 'APAC'], ['MY', 'Malaisie', 'APAC'], ['ID', 'Indonésie', 'APAC'], ['VN', 'Vietnam', 'APAC'], ['TW', 'Taïwan', 'APAC'], ['HK', 'Hong Kong', 'APAC'], ['IN', 'Inde', 'APAC'],
+  ['CN', 'Chine', 'APAC'], ['GH', 'Ghana', 'SSA'], ['ZW', 'Zimbabwe', 'SSA'], ['NA', 'Namibie', 'SSA'], ['BW', 'Botswana', 'SSA'],
+];
+for (const [code, name, region] of EXTRA) if (!NATION_BY_CODE[code]) NATION_BY_CODE[code] = { code, name, flag: '', first: [], last: [], cities: [], weight: 0, region };
 export const flag = (code: string) => NATION_BY_CODE[code]?.flag ?? '🏳️';
 
 export const REGION_INFO: Record<Region, { name: string; strength: number; teams: number; prizeMult: number; majorSlots: number; color: string }> = {
