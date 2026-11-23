@@ -20,22 +20,22 @@ export function StartMenu() {
   useEffect(() => { refresh(); }, []);
   if (mode === 'new') return <NewCareer onCancel={() => setMode('menu')} />;
   return (
-    <div className="h-full flex">
-      <div className="w-[440px] shrink-0 border-r border-ink-700 p-10 flex flex-col relative overflow-hidden" style={{ background: 'radial-gradient(500px 400px at 0% 0%, #ff8a1f22, transparent 70%), radial-gradient(500px 400px at 100% 100%, #3d8bff1c, transparent 70%), #121620' }}>
+    <div className="h-full flex flex-col lg:flex-row overflow-auto">
+      <div className="w-full lg:w-[440px] shrink-0 border-b lg:border-b-0 lg:border-r border-ink-700 p-8 lg:p-10 flex flex-col relative overflow-hidden" style={{ background: 'radial-gradient(500px 400px at 0% 0%, #ff8a1f22, transparent 70%), radial-gradient(500px 400px at 100% 100%, #3d8bff1c, transparent 70%), #121620' }}>
         <div className="flex items-center gap-3 mb-10">
           <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-accent to-[#ff5a1f] text-[#1a0d00] font-black flex items-center justify-center shadow-[0_10px_30px_-10px_#ff8a1f]">RLM</div>
           <div><div className="text-2xl font-black tracking-wide">ROCKET LEAGUE</div><div className="text-ink-400 tracking-[0.35em] text-xs">MANAGER</div></div>
         </div>
         <p className="text-ink-300 text-sm mb-8 leading-relaxed">Prenez les commandes d'une organisation esport Rocket League. Recrutez, développez, négociez, gagnez — saison après saison.</p>
         <Btn kind="primary" className="h-12 text-[15px]" onClick={() => setMode('new')}>Nouvelle carrière</Btn>
-        <div className="mt-auto text-[11px] text-ink-500">Monde fictif. Toutes les organisations, joueurs et marques sont inventés.</div>
+        <div className="mt-8 lg:mt-auto text-[11px] text-ink-500">Monde fictif. Toutes les organisations, joueurs et marques sont inventés.</div>
       </div>
-      <div className="flex-1 p-10 overflow-auto">
+      <div className="flex-1 p-8 lg:p-10 lg:overflow-auto">
         <h2 className="text-2xl font-bold mb-1">Carrières sauvegardées</h2><p className="text-ink-400 text-sm mb-5">Reprenez là où vous vous étiez arrêté.</p>
         {!saves.length && <div className="text-ink-400">Aucune sauvegarde pour l'instant.</div>}
         <div className="flex flex-col gap-2 max-w-3xl">
           {saves.map(s => (
-            <div key={s.id} className="card p-4 hover:border-ink-500 transition-colors flex items-center gap-4">
+            <div key={s.id} className="card p-4 hover:border-ink-500 transition-colors flex items-center gap-4 flex-wrap">
               <div className="flex-1 min-w-0">
                 <div className="font-semibold">{s.name}</div>
                 <div className="text-xs text-ink-300">{s.manager} · {s.org} · {fmtDate(s.date)} · {DIFFICULTY[s.difficulty as Difficulty]?.label}</div>
